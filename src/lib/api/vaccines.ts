@@ -62,4 +62,12 @@ export async function deleteVaccine(id: string): Promise<void> {
   if (!response.ok) {
     throw new Error("Failed to delete vaccine")
   }
-} 
+}
+
+export const getVaccineById = async (id: string) => {
+  const response = await fetch(`${API_BASE_URL}/api/vaccines/${id}`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch vaccine details");
+  }
+  return await response.json();
+}; 

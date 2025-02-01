@@ -55,13 +55,14 @@ export async function POST(request: Request) {
       gender,
       vaccineId,
       doseNumber,
+      previousCertificateNo,
       dateAdministered,
     } = json;
 
     // Get vaccine details
     const vaccine = await db.vaccine.findUnique({
       where: { id: vaccineId },
-      select: { name: true },
+      select: { name: true, totalDose: true },
     });
 
     if (!vaccine) {
@@ -71,6 +72,112 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate dose number
+    if (doseNumber > vaccine.totalDose) {
+      return NextResponse.json(
+        { error: `Dose number cannot be greater than ${vaccine.totalDose}` },
+        { status: 400 }
+      );
+    }
+
+    // If it's not the first dose, validate previous certificate
+    if (doseNumber > 1) {
+      if (!previousCertificateNo) {
+        return NextResponse.json(
+          { error: "Previous certificate number is required for doses after first dose" },
+          { status: 400 }
+        );
+      }
+
+      const previousCertificate = await db.certificate.findUnique({
+        where: { certificateNo: parseInt(previousCertificateNo) },
+        include: {
+          vaccinations: true,
+          vaccine: true,
+        },
+      });
+
+      if (!previousCertificate) {
+        return NextResponse.json(
+          { error: "Previous certificate not found" },
+          { status: 404 }
+        );
+      }
+
+      // Validate that the vaccine matches
+      if (previousCertificate.vaccineId !== vaccineId) {
+        return NextResponse.json(
+          { 
+            error: "Vaccine mismatch", 
+            details: {
+              currentVaccine: vaccine.name,
+              previousVaccine: previousCertificate.vaccine.name,
+              certificateDetails: {
+                patientName: previousCertificate.patientName,
+                certificateNo: previousCertificate.certificateNo,
+                vaccineId: previousCertificate.vaccineId
+              }
+            }
+          },
+          { status: 400 }
+        );
+      }
+
+      // Create certificate with previous vaccination records and deactivate previous certificate
+      const [deactivatedPrevious, certificate] = await db.$transaction([
+        // Deactivate previous certificate
+        db.certificate.update({
+          where: { certificateNo: parseInt(previousCertificateNo) },
+          data: { isActive: false },
+        }),
+        // Create new certificate
+        db.certificate.create({
+          data: {
+            nidNumber: previousCertificate.nidNumber,
+            passportNumber: previousCertificate.passportNumber,
+            nationality: previousCertificate.nationality,
+            patientName: previousCertificate.patientName,
+            dateOfBirth: previousCertificate.dateOfBirth,
+            gender: previousCertificate.gender,
+            vaccineId,
+            doseNumber,
+            dateAdministered: new Date(dateAdministered),
+            vaccinations: {
+              create: [
+                // Include previous vaccination records
+                ...previousCertificate.vaccinations.map((v) => ({
+                  vaccineId: v.vaccineId,
+                  vaccineName: v.vaccineName,
+                  doseNumber: v.doseNumber,
+                  dateAdministered: v.dateAdministered,
+                  vaccinationCenter: v.vaccinationCenter,
+                  vaccinatedById: v.vaccinatedById,
+                  vaccinatedByName: v.vaccinatedByName,
+                })),
+                // Add new vaccination record
+                {
+                  vaccineId,
+                  vaccineName: vaccine.name,
+                  doseNumber,
+                  dateAdministered: new Date(dateAdministered),
+                  vaccinationCenter: session.user.center,
+                  vaccinatedById: session.user.id,
+                  vaccinatedByName: `${session.user.firstName} ${session.user.lastName}`,
+                },
+              ],
+            },
+          },
+          include: {
+            vaccine: true,
+            vaccinations: true,
+          },
+        }),
+      ]);
+
+      return NextResponse.json(certificate);
+    }
+
+    // Create certificate for first dose
     const certificate = await db.certificate.create({
       data: {
         nidNumber,
