@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Role } from '@prisma/client';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 
 const userSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -46,7 +48,6 @@ export default function EditUserForm({ id }: EditUserFormProps) {
           setError(data.error);
           return;
         }
-        // Remove password from form data since it's optional in edit
         const { ...formData } = data;
         reset(formData);
         setIsLoading(false);
@@ -59,7 +60,6 @@ export default function EditUserForm({ id }: EditUserFormProps) {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // Remove password if it's empty
       if (!data.password) {
         delete data.password;
       }
@@ -106,104 +106,65 @@ export default function EditUserForm({ id }: EditUserFormProps) {
               <div className="space-y-6 bg-white px-4 py-5 sm:p-6">
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                      First name
-                    </label>
-                    <input
-                      type="text"
+                    <Input
                       {...register('firstName')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="First name"
+                      error={errors.firstName?.message}
                     />
-                    {errors.firstName && (
-                      <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                      Last name
-                    </label>
-                    <input
-                      type="text"
+                    <Input
                       {...register('lastName')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="Last name"
+                      error={errors.lastName?.message}
                     />
-                    {errors.lastName && (
-                      <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                      Username
-                    </label>
-                    <input
-                      type="text"
+                    <Input
                       {...register('username')}
+                      label="Username"
                       disabled
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      error={errors.username?.message}
                     />
-                    {errors.username && (
-                      <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                      Password (leave blank to keep unchanged)
-                    </label>
-                    <input
+                    <Input
                       type="password"
                       {...register('password')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="Password"
+                      helperText="Leave blank to keep unchanged"
+                      error={errors.password?.message}
                     />
-                    {errors.password && (
-                      <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                      Role
-                    </label>
-                    <select
+                    <Select
                       {...register('role')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="Role"
+                      error={errors.role?.message}
                     >
                       <option value={Role.TECHNICIAN}>Technician</option>
                       <option value={Role.ADMIN}>Admin</option>
-                    </select>
-                    {errors.role && (
-                      <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-                    )}
+                    </Select>
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="center" className="block text-sm font-medium text-gray-700">
-                      Vaccination Center
-                    </label>
-                    <input
-                      type="text"
+                    <Input
                       {...register('center')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="Vaccination Center"
+                      error={errors.center?.message}
                     />
-                    {errors.center && (
-                      <p className="mt-1 text-sm text-red-600">{errors.center.message}</p>
-                    )}
                   </div>
 
                   <div className="col-span-6 sm:col-span-3">
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                      Phone Number
-                    </label>
-                    <input
-                      type="text"
+                    <Input
                       {...register('phone')}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      label="Phone Number"
+                      error={errors.phone?.message}
                     />
-                    {errors.phone && (
-                      <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
-                    )}
                   </div>
                 </div>
 
