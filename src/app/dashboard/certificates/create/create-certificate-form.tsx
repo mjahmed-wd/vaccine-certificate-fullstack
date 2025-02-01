@@ -122,6 +122,9 @@ export function CreateCertificateForm() {
         `/api/certificates/by-number/${previousNo}`
       );
       const certificateData = await certificateResponse.json();
+      if (certificateData.error) {
+        throw new Error(certificateData.error);
+      }
       const vaccineResponse = await getVaccineById(certificateData.vaccineId);
       const vaccineName = vaccineResponse?.name;
 
@@ -156,10 +159,13 @@ export function CreateCertificateForm() {
       );
       form.setValue("gender", certificateData.gender);
       setValidationError(null);
-    } catch {
-      setValidationError(
-        "Failed to validate certificate with certificate number and vaccine"
-      );
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setValidationError(error.message);
+      } else {
+        setValidationError("Failed to validate certificate");
+      }
+      // setPreviousCertificateDetails(null);
       // setPreviousCertificateDetails(null);
     } finally {
       setIsValidatingCertificate(false);
