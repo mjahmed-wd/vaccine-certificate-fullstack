@@ -28,12 +28,13 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
 
     // Check if the certificate is inactive
-    if (!certificate.isActive) {
-      return NextResponse.json(
-        { error: "Certificate is inactive" },
-        { status: 400 } // 400 for a bad request due to inactive certificate
-      );
-    }
+    // TODO: Uncomment this when we have a way to deactivate certificates
+    // if (!certificate.isActive) {
+    //   return NextResponse.json(
+    //     { error: "Certificate is inactive" },
+    //     { status: 400 } // 400 for a bad request due to inactive certificate
+    //   );
+    // }
 
     return NextResponse.json(certificate);
   } catch (error) {

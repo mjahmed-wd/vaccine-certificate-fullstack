@@ -1,7 +1,7 @@
-import { Metadata } from "next"
-import { DataTable } from "./data-table"
-import { columns } from "./columns"
 import { getCertificates } from "@/lib/api/certificates"
+import { Metadata } from "next"
+import { columns } from "./columns"
+import { DataTable } from "./data-table"
 
 export const metadata: Metadata = {
   title: "Certificates",
