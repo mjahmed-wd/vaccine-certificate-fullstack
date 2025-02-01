@@ -1,7 +1,6 @@
-import { db } from "../../../lib/db";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../lib/auth";
+import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 import { z } from "zod";
 
 const vaccineSchema = z.object({
@@ -11,16 +10,9 @@ const vaccineSchema = z.object({
 
 export async function GET() {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get all vaccines
     const vaccines = await db.vaccine.findMany({
       orderBy: {
-        name: 'asc',
+        name: "asc",
       },
     });
 
@@ -36,33 +28,19 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse and validate request body
-    const body = await request.json();
-    const validatedData = vaccineSchema.parse(body);
+    const json = await request.json();
+    const { name, totalDose } = json;
 
-    // Check if vaccine name is already taken
-    const existingVaccine = await db.vaccine.findFirst({
-      where: {
-        name: validatedData.name,
-      },
-    });
-
-    if (existingVaccine) {
-      return NextResponse.json(
-        { error: "Vaccine name is already taken" },
-        { status: 400 }
-      );
-    }
-
-    // Create vaccine
     const vaccine = await db.vaccine.create({
-      data: validatedData,
+      data: {
+        name,
+        totalDose,
+      },
     });
 
     return NextResponse.json(vaccine);

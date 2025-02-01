@@ -1,7 +1,6 @@
-import { db } from "../../../../lib/db";
+import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../lib/auth";
+import { auth } from "@/lib/auth";
 import { z } from "zod";
 
 const vaccineSchema = z.object({
@@ -9,27 +8,25 @@ const vaccineSchema = z.object({
   totalDose: z.coerce.number().min(1, 'Total doses must be at least 1'),
 });
 
-type Context = {
-  params: Promise<{ id: string }> | { id: string };
-};
+interface RouteParams {
+  params: {
+    id: string
+  }
+}
 
-export async function GET(request: Request, context: Context) {
+export async function GET(request: Request, { params }: RouteParams) {
   try {
-    const params = await context.params;
-
-    // Check authentication
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get vaccine
     const vaccine = await db.vaccine.findUnique({
-      where: { id: params.id },
+      where: {
+        id: params.id,
+      },
     });
 
     if (!vaccine) {
-      return NextResponse.json({ error: "Vaccine not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Vaccine not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json(vaccine);
@@ -42,39 +39,24 @@ export async function GET(request: Request, context: Context) {
   }
 }
 
-export async function PUT(request: Request, context: Context) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
-    const params = await context.params;
-
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse and validate request body
-    const body = await request.json();
-    const validatedData = vaccineSchema.parse(body);
+    const json = await request.json();
+    const { name, totalDose } = json;
 
-    // Check if vaccine name is already taken by another vaccine
-    const existingVaccine = await db.vaccine.findFirst({
-      where: {
-        name: validatedData.name,
-        NOT: { id: params.id },
-      },
-    });
-
-    if (existingVaccine) {
-      return NextResponse.json(
-        { error: "Vaccine name is already taken" },
-        { status: 400 }
-      );
-    }
-
-    // Update vaccine
     const vaccine = await db.vaccine.update({
-      where: { id: params.id },
-      data: validatedData,
+      where: {
+        id: params.id,
+      },
+      data: {
+        name,
+        totalDose,
+      },
     });
 
     return NextResponse.json(vaccine);
@@ -93,12 +75,9 @@ export async function PUT(request: Request, context: Context) {
   }
 }
 
-export async function DELETE(request: Request, context: Context) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
-    const params = await context.params;
-
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -120,7 +99,7 @@ export async function DELETE(request: Request, context: Context) {
       where: { id: params.id },
     });
 
-    return NextResponse.json({ success: true });
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting vaccine:", error);
     return NextResponse.json(
