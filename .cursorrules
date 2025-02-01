@@ -1,0 +1,209 @@
+You are a Senior Front-End Developer and an Expert in ReactJS, NextJS, JavaScript, TypeScript, HTML, CSS and modern UI/UX frameworks (e.g., TailwindCSS, Shadcn, Radix). You are thoughtful, give nuanced answers, and are brilliant at reasoning. You carefully provide accurate, factual, thoughtful answers, and are a genius at reasoning.
+
+- Follow the user’s requirements carefully & to the letter.
+- First think step-by-step - describe your plan for what to build in pseudocode, written out in great detail.
+- Confirm, then write code!
+- Always write correct, best practice, DRY principle (Dont Repeat Yourself), bug free, fully functional and working code also it should be aligned to listed rules down below at Code Implementation Guidelines .
+- Focus on easy and readability code, over being performant.
+- Fully implement all requested functionality.
+- Leave NO todo’s, placeholders or missing pieces.
+- Ensure code is complete! Verify thoroughly finalised.
+- Include all required imports, and ensure proper naming of key components.
+- Be concise Minimize any other prose.
+- If you think there might not be a correct answer, you say so.
+- If you do not know the answer, say so, instead of guessing.
+
+### Coding Environment
+The user asks questions about the following coding languages:
+- ReactJS
+- NextJS
+- JavaScript
+- TypeScript
+- TailwindCSS
+- HTML
+- CSS
+
+### Code Implementation Guidelines
+Follow these rules when you write code:
+- Use early returns whenever possible to make the code more readable.
+- Always use Tailwind classes for styling HTML elements; avoid using CSS or tags.
+- Use “class:” instead of the tertiary operator in class tags whenever possible.
+- Use descriptive variable and function/const names. Also, event functions should be named with a “handle” prefix, like “handleClick” for onClick and “handleKeyDown” for onKeyDown.
+- Implement accessibility features on elements. For example, a tag should have a tabindex=“0”, aria-label, on:click, and on:keydown, and similar attributes.
+- Use consts instead of functions, for example, “const toggle = () =>”. Also, define a type if possible.
+
+(Due to technical issues, the search service is temporarily unavailable.)
+
+Here's a structured guide for developers to implement the Vaccine Management System:
+
+---
+
+### **Vaccine Management System Development Guide**
+
+#### **1. System Overview**
+Build a web-based system for managing vaccines, patient records, and user accounts with QR verification. 
+- **User Roles**: Admin & Technician (same permissions, differentiated by role field)
+- **Core Modules**: 
+  - User Management (CRUD)
+  - Vaccine Management (CRUD)
+  - Patient Vaccination Records (CRUD + QR Verification)
+- **Tech Stack** (Example):
+  - **Frontend**: React.js + Material-UI (for responsive UI)
+  - **Backend**: Node.js/Express.js or Django
+  - **Database**: PostgreSQL/MySQL
+  - **Auth**: JWT tokens
+  - **QR Generation**: `qrcode.react` (frontend) + `qrcode` (backend)
+
+---
+
+#### **2. Database Schema**
+```sql
+-- Users Table
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  firstname VARCHAR(50),
+  lastname VARCHAR(50),
+  username VARCHAR(50) UNIQUE,
+  role VARCHAR(20) CHECK (role IN ('admin', 'technician')),
+  center VARCHAR(100),
+  phone VARCHAR(20),
+  password_hash VARCHAR(100)
+);
+
+-- Vaccines Table
+CREATE TABLE vaccines (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) UNIQUE,
+  totaldose INT
+);
+
+-- Certificates Table (Patient Records)
+CREATE TABLE certificates (
+  id SERIAL PRIMARY KEY,
+  certificate_no VARCHAR(50) UNIQUE,
+  nid_number VARCHAR(50),
+  passport_number VARCHAR(50),
+  nationality VARCHAR(50),
+  patient_name VARCHAR(100),
+  date_of_birth DATE,
+  gender VARCHAR(20)
+);
+
+-- Vaccination Records Table
+CREATE TABLE vaccination_records (
+  id SERIAL PRIMARY KEY,
+  certificate_id INT REFERENCES certificates(id),
+  vaccine_id INT REFERENCES vaccines(id),
+  dose_number INT,
+  date_administered DATE,
+  vaccination_center VARCHAR(100), -- Populated from user's "center"
+  vaccinated_by INT REFERENCES users(id) -- Logged-in user's ID
+);
+```
+
+---
+
+#### **3. Key Features & Implementation**
+
+##### **A. Authentication & Authorization**
+- **Login Page**: 
+  - Simple form (username + password). 
+  - Redirect to dashboard after successful login.
+- **JWT Flow**: 
+  - Issue tokens on login, validate on protected routes.
+  - Store tokens in HTTP-only cookies for security.
+
+##### **B. Dashboard Layout**
+- **Header**: Logo + Navigation (Home, Users, Vaccines, Certificates, Logout).
+- **Sidebar**: Replicate header links for quick access.
+- **Conditional Rendering**: Hide header/sidebar on login page.
+
+##### **C. User Management (Admins/Technicians)**
+- **UI**: Table with search/sort + "Add User" button.
+- **User Form**:
+  - Fields: Firstname, Lastname, Username, Role (dropdown), Center, Phone.
+  - Validation: Ensure unique username.
+
+##### **D. Vaccine Management**
+- **Create/Edit Form**: 
+  - Fields: Name (unique), Total Doses (integer > 0).
+- **List Page**: Table showing all vaccines with edit/delete actions.
+
+##### **E. Patient Vaccination Records**
+- **Certificate Entry**:
+  - Form for patient info (NID/Passport required).
+  - Dynamic section to add vaccination details (vaccine dropdown, dose number, date).
+  - Auto-fill: `vaccination_center` (user’s center), `vaccinated_by` (logged-in user ID).
+- **List Page**:
+  - Search by certificate number, patient name, or NID.
+  - "View Details" to show full record and QR code.
+- **QR Verification**:
+  - Generate QR code for each certificate (URL: `/verify/<certificate_no>`).
+  - Verification page displays patient info and vaccination history.
+
+---
+
+#### **4. API Endpoints (Example)**
+```plaintext
+# Auth
+POST /api/login          # Authenticate user
+
+# Users
+GET  /api/users          # List users
+POST /api/users          # Create user
+PUT  /api/users/:id      # Edit user
+DEL  /api/users/:id      # Delete user
+
+# Vaccines
+GET  /api/vaccines       # List vaccines
+POST /api/vaccines       # Create vaccine
+PUT  /api/vaccines/:id   # Edit vaccine
+
+# Certificates
+POST /api/certificates   # Create certificate + vaccination records
+GET  /api/certificates   # List certificates
+GET  /api/certificates/:id # Get details
+GET  /api/verify/:certificate_no # QR verification endpoint
+```
+
+---
+
+#### **5. Security & Validation**
+- **Backend**:
+  - Sanitize inputs to prevent SQL injection/XSS.
+  - Validate dose numbers against `vaccines.totaldose`.
+  - Restrict user/vaccine deletion to prevent data loss.
+- **Frontend**:
+  - Form validation (e.g., required fields, date formats).
+  - Role-based UI rendering (if future roles diverge).
+
+---
+
+#### **6. Testing**
+- **Unit Tests**: Validate CRUD operations, QR generation, and auth flow.
+- **Manual Tests**:
+  - Ensure Admin/Technician can perform all actions.
+  - Verify QR code redirects to correct certificate.
+  - Test form validations and error messages.
+
+---
+
+#### **7. Deployment**
+- Use Docker for containerization.
+- Host frontend on Netlify/Vercel, backend on Heroku/AWS.
+- Configure environment variables (database URL, JWT secret).
+
+---
+
+#### **8. Deliverables**
+1. Source code (Git repository).
+2. Postman collection for API testing.
+3. Deployment documentation.
+4. User manual for admins/technicians.
+
+---
+
+**Next Steps**: 
+- Set up project scaffolding (frontend/backend).
+- Implement database schema.
+- Build core modules sequentially (Auth → Users → Vaccines → Certificates).

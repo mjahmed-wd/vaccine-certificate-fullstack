@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  firstName     String
+  lastName      String
+  username      String    @unique
+  role          Role      @default(TECHNICIAN)
+  center        String
+  phone         String
+  passwordHash  String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  vaccinations  VaccinationRecord[]
+}
+
+model Vaccine {
+  id            String    @id @default(uuid())
+  name          String    @unique
+  totalDose     Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  vaccinations  VaccinationRecord[]
+}
+
+model Certificate {
+  id              String    @id @default(uuid())
+  certificateNo   String    @unique
+  nidNumber       String?
+  passportNumber  String?
+  nationality     String
+  patientName     String
+  dateOfBirth     DateTime
+  gender          Gender
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  vaccinations    VaccinationRecord[]
+}
+
+model VaccinationRecord {
+  id                String      @id @default(uuid())
+  certificateId     String
+  certificate       Certificate @relation(fields: [certificateId], references: [id])
+  vaccineId         String
+  vaccine           Vaccine     @relation(fields: [vaccineId], references: [id])
+  doseNumber        Int
+  dateAdministered  DateTime
+  vaccinationCenter String
+  vaccinatedById    String
+  vaccinatedBy      User        @relation(fields: [vaccinatedById], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([certificateId])
+  @@index([vaccineId])
+  @@index([vaccinatedById])
+}
+
+enum Role {
+  ADMIN
+  TECHNICIAN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
