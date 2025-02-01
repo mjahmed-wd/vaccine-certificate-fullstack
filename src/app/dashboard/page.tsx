@@ -1,10 +1,35 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
-import React from "react";
+
+interface DashboardCounts {
+  users: number;
+  vaccines: number;
+  certificates: number;
+}
 
 export default function DashboardPage() {
   const { data: session } = useSession();
+  const [counts, setCounts] = useState<DashboardCounts>({
+    users: 0,
+    vaccines: 0,
+    certificates: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/dashboard/counts')
+      .then(res => res.json())
+      .then(data => {
+        setCounts(data);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Error loading counts:', error);
+        setIsLoading(false);
+      });
+  }, []);
 
   return (
     <div>
@@ -35,7 +60,9 @@ export default function DashboardPage() {
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Users
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">-</dd>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {isLoading ? "Loading..." : counts.users}
+                  </dd>
                 </dl>
               </div>
             </div>
@@ -65,7 +92,9 @@ export default function DashboardPage() {
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Vaccines
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">-</dd>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {isLoading ? "Loading..." : counts.vaccines}
+                  </dd>
                 </dl>
               </div>
             </div>
@@ -95,7 +124,9 @@ export default function DashboardPage() {
                   <dt className="text-sm font-medium text-gray-500 truncate">
                     Total Certificates
                   </dt>
-                  <dd className="text-lg font-medium text-gray-900">-</dd>
+                  <dd className="text-lg font-medium text-gray-900">
+                    {isLoading ? "Loading..." : counts.certificates}
+                  </dd>
                 </dl>
               </div>
             </div>
