@@ -20,7 +20,9 @@ interface ViewCertificatePageProps {
 export default async function ViewCertificatePage({
   params,
 }: ViewCertificatePageProps) {
-  const certificate = await getCertificate(params.id).catch(() => null)
+  // Await params before using
+  const { id } = await params;
+  const certificate = await getCertificate(id).catch(() => null)
 
   if (!certificate) {
     notFound()
@@ -105,7 +107,7 @@ export default async function ViewCertificatePage({
                 <dt className="text-sm font-medium text-muted-foreground">
                   Vaccine
                 </dt>
-                <dd className="text-sm">{certificate.vaccine.name}</dd>
+                <dd className="text-sm">{certificate.vaccine?.name}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">
@@ -145,7 +147,7 @@ export default async function ViewCertificatePage({
                       <dt className="text-sm font-medium text-muted-foreground">
                         Vaccine
                       </dt>
-                      <dd className="text-sm">{vaccination.vaccine.name}</dd>
+                      <dd className="text-sm">{vaccination.vaccineName}</dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium text-muted-foreground">
@@ -171,10 +173,7 @@ export default async function ViewCertificatePage({
                       <dt className="text-sm font-medium text-muted-foreground">
                         Vaccinated By
                       </dt>
-                      <dd className="text-sm">
-                        {vaccination.vaccinatedBy.firstName}{" "}
-                        {vaccination.vaccinatedBy.lastName}
-                      </dd>
+                      <dd className="text-sm">{vaccination.vaccinatedByName}</dd>
                     </div>
                   </dl>
                 </div>

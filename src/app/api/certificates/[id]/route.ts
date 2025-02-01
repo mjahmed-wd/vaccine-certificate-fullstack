@@ -10,13 +10,31 @@ interface RouteParams {
 
 export async function GET(request: Request, { params }: RouteParams) {
   try {
+    const { id } = await params;
+
     const certificate = await db.certificate.findUnique({
       where: {
-        id: params.id,
+        id,
       },
       include: {
-        vaccine: true,
+        vaccine: {
+          select: {
+            id: true,
+            name: true,
+            totalDose: true,
+          },
+        },
         vaccinations: {
+          select: {
+            id: true,
+            vaccineId: true,
+            vaccineName: true,
+            doseNumber: true,
+            dateAdministered: true,
+            vaccinationCenter: true,
+            vaccinatedById: true,
+            vaccinatedByName: true,
+          },
           orderBy: {
             doseNumber: "asc",
           },
