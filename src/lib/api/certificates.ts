@@ -8,9 +8,12 @@ export interface CertificateWithDetails extends Certificate {
   vaccinations: Array<{
     id: string
     vaccineId: string
+    vaccineName: string
     doseNumber: number
     dateAdministered: string
     vaccinationCenter: string
+    vaccinatedById: string
+    vaccinatedByName: string
     vaccine: Vaccine
     vaccinatedBy: {
       firstName: string
@@ -36,9 +39,19 @@ export async function getCertificate(id: string): Promise<CertificateWithDetails
   return response.json()
 }
 
-export async function createCertificate(
-  data: Omit<Certificate, "id" | "certificateNo" | "isActive">
-): Promise<Certificate> {
+export type CreateCertificateData = {
+  patientName: string
+  nidNumber?: string
+  passportNumber?: string
+  nationality: string
+  dateOfBirth: string
+  gender: string
+  vaccineId: string
+  doseNumber: number
+  dateAdministered: string
+}
+
+export async function createCertificate(data: CreateCertificateData): Promise<Certificate> {
   const response = await fetch(`${API_BASE_URL}/api/certificates`, {
     method: "POST",
     headers: {
