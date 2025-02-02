@@ -5,6 +5,10 @@ import type { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request });
 
+  if (request.nextUrl.pathname.startsWith("/verify")) {
+    return NextResponse.next();
+  }
+
   if (!token) {
     if (request.nextUrl.pathname === "/login") {
       return NextResponse.next();
@@ -22,4 +26,4 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-}; 
+};

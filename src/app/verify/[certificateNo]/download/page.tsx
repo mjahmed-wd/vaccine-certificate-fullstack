@@ -2,196 +2,226 @@
 
 /* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useEffect, useState } from "react";
-import html2pdf from "html2pdf.js";
-import { useRouter } from "next/navigation";
+import QRCode from "react-qr-code";
+import { useRouter, useParams } from "next/navigation";
+import { CertificateWithDetails } from "@/lib/api/certificates";
+import { format } from "date-fns";
 
 const DownloadPage = () => {
   const [isClient, setIsClient] = useState(false);
+  const [certificate, setCertificate] = useState<CertificateWithDetails | null>(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { certificateNo } = useParams();
+  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${certificateNo}`;
 
-  useEffect(() => {
-    // Set isClient to true when the component mounts
-    setIsClient(true);
-  }, []);
-
-  const handleDownload = useCallback(() => {
-    if (isClient) {
-      const element = document.getElementById("certificate"); // Ensure this ID matches the certificate's container
-      if (element) {
-        element?.classList.remove("hidden");
-        html2pdf().from(element).save("vaccination_certificate.pdf");
-      router.back();
-      }
-      // element?.classList.add("hidden");
+  const fetchCertificate = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/certificates/by-number/${certificateNo}`);
+      if (!response.ok) throw new Error("Failed to fetch certificate");
+      const data = await response.json();
+      setCertificate(data);
+    } catch (error) {
+      console.error("Error fetching certificate:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [isClient, router]);
+  }, [certificateNo]);
 
   useEffect(() => {
-    handleDownload();
-  }, [handleDownload]);
+    setIsClient(true);
+    fetchCertificate();
+  }, [fetchCertificate]);
+
+  const handleDownload = useCallback(async () => {
+    if (isClient) {
+      try {
+        const html2pdf = (await import('html2pdf.js')).default;
+        const element = document.getElementById("certificate");
+        if (element) {
+          const opt = {
+            margin: 10,
+            filename: `vaccination_certificate_${certificateNo}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+          
+          await html2pdf().set(opt).from(element).save();
+          router.back();
+        }
+      } catch (error) {
+        console.error('Error generating PDF:', error);
+      }
+    }
+  }, [isClient, router, certificateNo]);
+
+  useEffect(() => {
+    if (!loading && certificate && isClient) {
+      handleDownload();
+    }
+  }, [loading, certificate, handleDownload, isClient]);
+
+  if (loading || !certificate) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <>
-      {/* <button onClick={handleDownload}>Download</button> */}
+    <div className="min-h-screen bg-white p-4">
       <div
         id="certificate"
-        className="border-2 border-black p-8 font-sans max-w-2xl mx-auto bg-white"
+        className="border border-gray-200 rounded-lg p-8 font-sans max-w-4xl mx-auto"
       >
-        <div className="flex items-center justify-between mb-5">
-          <img
-            src="/bd-logo.png"
-            alt="Government of Bangladesh logo"
-            className="w-20 h-auto"
-          />
-          <div className="text-right">
-            <h2 className="m-0">
-              Government of the Peoples&apos; Republic of Bangladesh
-            </h2>
-            <h3 className="m-0">Government Employees Hospital</h3>
-            <p className="my-1">Fulbaria, Dhaka-1000</p>
-            <p className="my-1">
-              <a href="http://www.skh.gov.bd">www.skh.gov.bd</a>
-            </p>
-            <p className="my-1">
-              Email: <a href="mailto:geh@mopa.gov.bd">geh@mopa.gov.bd</a>
-            </p>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 border-b border-gray-200 pb-6 gap-4">
+          <div className="flex items-center space-x-4">
+            <img
+              src="/popular-logo.png"
+              alt="Popular Medical Centre logo"
+              className="w-20 h-20 object-contain"
+            />
+            <div>
+              <h1 className="text-xl font-bold text-gray-800 mb-1">
+                POPULAR MEDICAL CENTRE & HOSPITAL SYLHET
+              </h1>
+              <p className="text-xs text-gray-600">
+                Sobhanighat, Sylhet | Phone: 09636772211
+                <br />
+                Email: popularsylhet2005@gmail.com | www.popularsylhet.com
+              </p>
+            </div>
           </div>
+          <QRCode value={qrValue} size={120} className="bg-white" />
         </div>
 
-        <div className="text-center mb-5">
-          <h1>Meningococcal Vaccination Certificate</h1>
-        </div>
-
-        <div className="flex justify-between">
-          <div className="w-1/2">
-            <h3>Beneficiary Details</h3>
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Certificate No:
-                  </td>
-                  <td className="p-1 border border-black text-left">01</td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">NID No:</td>
-                  <td className="p-1 border border-black text-left">
-                    8244932557
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Passport No:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    D00017716
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Nationality:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    Bangladeshi
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">Name:</td>
-                  <td className="p-1 border border-black text-left">
-                    SALEH UDDIN AHMED
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Date of Birth:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    01-01-1949
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">Gender:</td>
-                  <td className="p-1 border border-black text-left">Male</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div className="w-1/2">
-            <h3>Vaccination Details</h3>
-            <table className="w-full border-collapse">
-              <tbody>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Date of Vaccination:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    30-12-2024
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Name of Vaccine:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    Nimenrix (Pfizer)
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Vaccination Center:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    Government Employees Hospital
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-1 border border-black text-left">
-                    Vaccinated by:
-                  </td>
-                  <td className="p-1 border border-black text-left">
-                    Mansura Akter (EPI Technician)
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="mt-5 text-center">
-          <p>
-            To verify this certificate, please visit:
-            <a
-              href="http://www.skh.gov.bd"
-              className="text-blue-500 no-underline"
-            >
-              www.skh.gov.bd
-            </a>{" "}
-            or email:
-            <a
-              href="mailto:geh@mopa.gov.bd"
-              className="text-blue-500 no-underline"
-            >
-              geh@mopa.gov.bd
-            </a>
+        {/* Certificate Title */}
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Vaccination Certificate
+          </h2>
+          <p className="text-gray-600 font-medium">
+            Certificate No: {certificateNo}
           </p>
-          <p>
-            Name of the Physician: Dr. Md. Zia Uddin
-            <br />
-            BM&DC Reg No: A-52808
-            <br />
-            Designation: Resident Physician (RP)
-            <br />
-            Government Employees Hospital
-            <br />
-            Ministry of Public Administration
-            <br />
-            Bangladesh
+        </div>
+
+        {/* Beneficiary Details */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Beneficiary Details
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <DetailItem label="Full Name" value={certificate.patientName} />
+            <DetailItem
+              label="Date of Birth"
+              value={format(new Date(certificate.dateOfBirth), "dd-MM-yyyy")}
+            />
+            <DetailItem label="Gender" value={certificate.gender} />
+            <DetailItem label="Nationality" value={certificate.nationality} />
+            {certificate.nidNumber && (
+              <DetailItem label="NID No" value={certificate.nidNumber} />
+            )}
+            {certificate.passportNumber && (
+              <DetailItem
+                label="Passport No"
+                value={certificate.passportNumber}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Vaccination Details Table */}
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Vaccination History
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-3 px-4 text-gray-600 font-medium">
+                    Dose
+                  </th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-medium">
+                    Vaccine Name
+                  </th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-medium">
+                    Date
+                  </th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-medium">
+                    Center
+                  </th>
+                  <th className="text-left py-3 px-4 text-gray-600 font-medium">
+                    Vaccinator
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {certificate.vaccinations
+                  .slice()
+                  .reverse()
+                  .map((vaccination) => (
+                    <tr
+                      key={vaccination.id}
+                      className="border-b border-gray-100"
+                    >
+                      <td className="py-3 px-4 text-gray-800">
+                        {vaccination.doseNumber}
+                        {getDoseNumberSuffix(vaccination.doseNumber)} Dose
+                      </td>
+                      <td className="py-3 px-4 text-gray-800">
+                        {vaccination.vaccineName || "N/A"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-800">
+                        {format(
+                          new Date(vaccination.dateAdministered),
+                          "dd-MM-yyyy"
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-gray-800">
+                        {vaccination.vaccinationCenter || "N/A"}
+                      </td>
+                      <td className="py-3 px-4 text-gray-800">
+                        {vaccination.vaccinatedByName || "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Verification Section */}
+        <div className="text-center border-t border-gray-100 pt-6">
+          <p className="text-sm text-gray-600 mb-2">
+            Verify this certificate at: {process.env.NEXT_PUBLIC_APP_URL}
+            /verify/{certificateNo}
+          </p>
+          <p className="text-xs text-gray-500 italic">
+            This is a system-generated certificate and does not require a
+            signature.
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
+};
+
+const DetailItem = ({ label, value }: { label: string; value: string }) => (
+  <div className="bg-gray-50 p-3 rounded">
+    <div className="text-sm text-gray-600 mb-1">{label}</div>
+    <div className="text-gray-800 font-medium">{value}</div>
+  </div>
+);
+
+const getDoseNumberSuffix = (num: number): string => {
+  if (num === 1) return "st";
+  if (num === 2) return "nd";
+  if (num === 3) return "rd";
+  return "th";
 };
 
 export default DownloadPage;
