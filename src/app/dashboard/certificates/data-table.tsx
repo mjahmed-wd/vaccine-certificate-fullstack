@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -52,8 +52,18 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const [isMounted, setIsMounted] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState<SearchField>("patientName");
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Handle hydration mismatch by mounting on client-side only
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const table = useReactTable({
     data,
     columns,
@@ -68,10 +78,6 @@ export function DataTable<TData, TValue>({
       columnFilters,
     },
   });
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchField, setSearchField] = useState<SearchField>("patientName");
-  const [isSearching, setIsSearching] = useState(false);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -93,7 +99,6 @@ export function DataTable<TData, TValue>({
         throw new Error(searchData.error || "Failed to search certificates");
       }
 
-      // Update table data
       table.setPageIndex(0);
       table.getColumn(searchField)?.setFilterValue(searchQuery);
     } catch {
@@ -107,24 +112,36 @@ export function DataTable<TData, TValue>({
     }
   };
 
+  // Return loading state or null while client-side hydration is happening
+  if (!isMounted) {
+    return (
+      <div className="w-full space-y-6 overflow-hidden rounded-lg bg-white p-4 shadow-sm transition-all">
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4"></div>
-      <div className="flex items-center justify-between py-4">
-        {/* <Input
-          placeholder="Filter by patient name..."
-          value={(table.getColumn("patientName")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("patientName")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        /> */}
-        <div className="flex-1 flex items-center gap-2">
+    <div className="w-full space-y-6 overflow-hidden rounded-lg bg-white p-4 shadow-sm transition-all">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-semibold text-gray-900">Certificates</h2>
+        <Link href="/dashboard/certificates/create">
+          <Button className="w-full sm:w-auto">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            New Certificate
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
           <Input
             placeholder="Search certificates..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-sm"
+            className="min-w-[200px] flex-1"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleSearch();
@@ -135,7 +152,7 @@ export function DataTable<TData, TValue>({
             value={searchField}
             onValueChange={(value: SearchField) => setSearchField(value)}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Search by..." />
             </SelectTrigger>
             <SelectContent>
@@ -146,7 +163,11 @@ export function DataTable<TData, TValue>({
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleSearch} disabled={isSearching}>
+          <Button 
+            onClick={handleSearch} 
+            disabled={isSearching}
+            className="w-full sm:w-auto"
+          >
             {isSearching ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -160,30 +181,26 @@ export function DataTable<TData, TValue>({
             )}
           </Button>
         </div>
-        <Link href="/dashboard/certificates/create">
-          <Button>
-            <PlusIcon className="mr-2 h-4 w-4" />
-            New Certificate
-          </Button>
-        </Link>
       </div>
-      <div className="rounded-md border">
+
+      <div className="relative overflow-x-auto rounded-md border bg-white shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+              <TableRow key={headerGroup.id} className="bg-gray-50">
+                {headerGroup.headers.map((header) => (
+                  <TableHead 
+                    key={header.id}
+                    className="whitespace-nowrap px-6 py-3 text-left text-sm font-medium text-gray-500"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -193,9 +210,13 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-gray-50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell 
+                      key={cell.id}
+                      className="whitespace-nowrap px-6 py-4 text-sm text-gray-900"
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -208,32 +229,40 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-sm text-gray-500"
                 >
-                  No results.
+                  No results found.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+
+      <div className="flex flex-col items-center justify-between gap-4 py-4 sm:flex-row">
+        <div className="text-sm text-gray-500">
+          Showing {table.getRowModel().rows.length} results
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="min-w-[80px]"
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="min-w-[80px]"
+          >
+            Next
+          </Button>
+        </div>
       </div>
     </div>
   );
