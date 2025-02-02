@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Search } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
-import { getCertificates } from "@/lib/api/certificates";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
