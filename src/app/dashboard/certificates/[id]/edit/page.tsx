@@ -9,15 +9,14 @@ export const metadata: Metadata = {
 }
 
 interface EditCertificatePageProps {
-  params: {
-    id: string
-  }
+  params: Promise<Record<string, string>>;
 }
 
 export default async function EditCertificatePage({
   params,
 }: EditCertificatePageProps) {
-  const certificate = await getCertificate(params.id).catch(() => null)
+  const { id } = await params;
+  const certificate = await getCertificate(id).catch(() => null)
 
   if (!certificate) {
     notFound()

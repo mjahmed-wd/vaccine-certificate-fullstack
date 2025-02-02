@@ -124,7 +124,7 @@ export async function POST(request: Request) {
       }
 
       // Create certificate with previous vaccination records and deactivate previous certificate
-      const [deactivatedPrevious, certificate] = await db.$transaction([
+      const [, certificate] = await db.$transaction([
         // Deactivate previous certificate
         db.certificate.update({
           where: { certificateNo: parseInt(previousCertificateNo) },

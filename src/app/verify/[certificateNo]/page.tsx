@@ -12,9 +12,7 @@ export const metadata: Metadata = {
 };
 
 interface VerifyCertificatePageProps {
-  params: {
-    certificateNo: string;
-  };
+  params: Promise<Record<string, string>>;
 }
 
 export default async function VerifyCertificatePage({

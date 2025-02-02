@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-interface RouteParams {
-  params: {
-    certificateNo: string;
-  };
-}
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
     // Await the params object to ensure proper access
     const { certificateNo } = await params;

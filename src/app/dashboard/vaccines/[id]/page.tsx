@@ -2,10 +2,10 @@ import React from "react";
 import EditVaccineForm from "./edit-vaccine-form";
 
 interface PageProps {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<Record<string, string>>;
 }
 
 export default async function EditVaccinePage({ params }: PageProps) {
-  const resolvedParams = await Promise.resolve(params);
-  return <EditVaccineForm id={resolvedParams.id} />;
+  const { id } = await params;
+  return <EditVaccineForm id={id} />;
 }

@@ -3,22 +3,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
-const vaccineSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  totalDose: z.coerce.number().min(1, 'Total doses must be at least 1'),
-});
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(request: Request, { params }: { params: Promise<Record<string, string>> }) {
   try {
+    const { id } = await params;
     const vaccine = await db.vaccine.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
     });
 
@@ -39,8 +30,9 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(request: Request, { params }: { params: Promise<Record<string, string>> }) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -51,7 +43,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const vaccine = await db.vaccine.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         name,
@@ -75,8 +67,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 }
 
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(request: Request, { params }: { params: Promise<Record<string, string>> }) {
   try {
+    const { id } = await params;
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -84,7 +77,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     // Check if vaccine is being used in any certificates
     const vaccineInUse = await db.vaccinationRecord.findFirst({
-      where: { vaccineId: params.id },
+      where: { vaccineId: id },
     });
 
     if (vaccineInUse) {
@@ -96,7 +89,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
 
     // Delete vaccine
     await db.vaccine.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return new NextResponse(null, { status: 204 });

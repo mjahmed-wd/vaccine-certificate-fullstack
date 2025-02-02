@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { checkPaymentStatus } from "@/lib/utils";
 
 interface DashboardCounts {
   users: number;
@@ -14,21 +15,22 @@ export default function DashboardPage() {
   const [counts, setCounts] = useState<DashboardCounts>({
     users: 0,
     vaccines: 0,
-    certificates: 0
+    certificates: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/dashboard/counts')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/dashboard/counts")
+      .then((res) => res.json())
+      .then((data) => {
         setCounts(data);
         setIsLoading(false);
       })
-      .catch(error => {
-        console.error('Error loading counts:', error);
+      .catch((error) => {
+        console.error("Error loading counts:", error);
         setIsLoading(false);
       });
+    checkPaymentStatus();
   }, []);
 
   return (
@@ -135,4 +137,4 @@ export default function DashboardPage() {
       </div>
     </div>
   );
-} 
+}

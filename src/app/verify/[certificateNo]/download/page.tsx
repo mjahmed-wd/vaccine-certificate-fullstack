@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
 import { CertificateWithDetails } from "@/lib/api/certificates";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";

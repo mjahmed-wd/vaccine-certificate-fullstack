@@ -3,11 +3,6 @@ import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
-const vaccineSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  totalDose: z.coerce.number().min(1, 'Total doses must be at least 1'),
-});
-
 export async function GET() {
   try {
     const vaccines = await db.vaccine.findMany({

@@ -12,9 +12,7 @@ export const metadata: Metadata = {
 }
 
 interface ViewCertificatePageProps {
-  params: {
-    id: string
-  }
+  params: Promise<Record<string, string>>;
 }
 
 export default async function ViewCertificatePage({

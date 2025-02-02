@@ -1,17 +1,13 @@
-import { NextResponse } from "next/server"
-import { db } from "@/lib/db"
-import { auth } from "@/lib/auth"
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { auth } from "@/lib/auth";
 
-interface RouteParams {
-  params: {
-    id: string
-  }
-}
-
-export async function GET(request: Request, { params }: RouteParams) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  const id = (await params).id;
   try {
-    const { id } = await params;
-
     const certificate = await db.certificate.findUnique({
       where: {
         id,
@@ -40,33 +36,37 @@ export async function GET(request: Request, { params }: RouteParams) {
           },
         },
       },
-    })
+    });
 
     if (!certificate) {
       return NextResponse.json(
         { error: "Certificate not found" },
         { status: 404 }
-      )
+      );
     }
 
-    return NextResponse.json(certificate)
+    return NextResponse.json(certificate);
   } catch (error) {
-    console.error("Failed to fetch certificate:", error)
+    console.error("Failed to fetch certificate:", error);
     return NextResponse.json(
       { error: "Failed to fetch certificate" },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function PUT(request: Request, { params }: RouteParams) {
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const session = await auth()
+    const { id } = await params;
+    const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const json = await request.json()
+    const json = await request.json();
     const {
       nidNumber,
       passportNumber,
@@ -75,11 +75,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
       dateOfBirth,
       gender,
       isActive,
-    } = json
+    } = json;
 
     const certificate = await db.certificate.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         nidNumber,
@@ -94,40 +94,44 @@ export async function PUT(request: Request, { params }: RouteParams) {
         vaccine: true,
         vaccinations: true,
       },
-    })
+    });
 
-    return NextResponse.json(certificate)
+    return NextResponse.json(certificate);
   } catch (error) {
-    console.error("Failed to update certificate:", error)
+    console.error("Failed to update certificate:", error);
     return NextResponse.json(
       { error: "Failed to update certificate" },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function DELETE(request: Request, { params }: RouteParams) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const session = await auth()
+    const { id } = await params;
+    const session = await auth();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await db.certificate.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         isActive: false,
       },
-    })
+    });
 
-    return new NextResponse(null, { status: 204 })
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
-    console.error("Failed to delete certificate:", error)
+    console.error("Failed to delete certificate:", error);
     return NextResponse.json(
       { error: "Failed to delete certificate" },
       { status: 500 }
-    )
+    );
   }
-} 
+}

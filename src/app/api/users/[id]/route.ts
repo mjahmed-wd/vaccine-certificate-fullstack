@@ -16,13 +16,12 @@ const userUpdateSchema = z.object({
   phone: z.string().min(1, 'Phone number is required'),
 });
 
-type Context = {
-  params: Promise<{ id: string }> | { id: string };
-};
-
-export async function GET(request: Request, context: Context) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const params = await context.params;
+    const { id } = await params;
 
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -32,7 +31,7 @@ export async function GET(request: Request, context: Context) {
 
     // Get user
     const user = await db.user.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: {
         id: true,
         firstName: true,
@@ -58,9 +57,12 @@ export async function GET(request: Request, context: Context) {
   }
 }
 
-export async function PUT(request: Request, context: Context) {
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
   try {
-    const params = await context.params;
+    const { id } = await params;
 
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -76,7 +78,7 @@ export async function PUT(request: Request, context: Context) {
     const existingUser = await db.user.findFirst({
       where: {
         username: validatedData.username,
-        NOT: { id: params.id },
+        NOT: { id: id },
       },
     });
 
@@ -104,7 +106,7 @@ export async function PUT(request: Request, context: Context) {
 
     // Update user
     const user = await db.user.update({
-      where: { id: params.id },
+      where: { id: id },
       data: updateData,
       select: {
         id: true,

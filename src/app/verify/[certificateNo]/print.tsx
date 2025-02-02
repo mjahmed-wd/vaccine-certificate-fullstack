@@ -1,11 +1,11 @@
 "use client";
 
 
-/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useEffect, useState } from "react";
 import PrintPreview from "./components/print-preview";
 import { CertificateWithDetails } from "@/lib/api/certificates";
 import { useParams } from "next/navigation";
+import { checkPaymentStatus } from "@/lib/utils";
 
 const VaccinationCertificatePrint = () => {
   const [certificate, setCertificate] = useState<CertificateWithDetails | null>(
@@ -31,6 +31,7 @@ const VaccinationCertificatePrint = () => {
 
   useEffect(() => {
     fetchCertificate();
+    checkPaymentStatus();
   }, [fetchCertificate]);
 
   if (loading || !certificate) {

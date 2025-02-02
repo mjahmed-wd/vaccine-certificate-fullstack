@@ -8,12 +8,27 @@ export const metadata: Metadata = {
   description: "Manage vaccination certificates",
 }
 
-export default async function CertificatesPage() {
-  const certificates = await getCertificates()
+// Make the page dynamic
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
-  return (
-    <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={certificates} />
-    </div>
-  )
+export default async function CertificatesPage() {
+  try {
+    const certificates = await getCertificates()
+
+    return (
+      <div className="container mx-auto py-10">
+        <DataTable columns={columns} data={certificates} />
+      </div>
+    )
+  } catch (error) {
+    console.error('Error fetching certificates:', error)
+    return (
+      <div className="container mx-auto py-10">
+        <div className="bg-destructive/15 text-destructive px-4 py-2 rounded-md">
+          Failed to load certificates. Please try again later.
+        </div>
+      </div>
+    )
+  }
 } 
