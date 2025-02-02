@@ -75,7 +75,7 @@ export default function EditUserForm({ id }: EditUserFormProps) {
         });
         setIsLoading(false);
       });
-  }, [id, form.reset, toast]);
+  }, [id, form.reset, toast, form]);
 
   const onSubmit = async (data: UserFormValues) => {
     try {
