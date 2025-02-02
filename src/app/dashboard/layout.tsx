@@ -1,9 +1,10 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard" },
@@ -19,51 +20,107 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const { data: session } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut({ callbackUrl: "/login" });
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50">
+      <nav className="bg-gradient-to-r from-green-900 to-green-800 shadow-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold text-[#007C02]">
-                  Vaccine Cert
-                </span>
-              </div>
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+          <div className="flex justify-between items-center h-20">
+            {/* Logo and Title - Left Side */}
+            <div className="flex items-center flex-1">
+              <Link href="/dashboard" className="flex items-center space-x-2 md:space-x-4">
+                <img
+                  src="/popular-logo.png"
+                  alt="Hospital Logo"
+                  className="h-10 w-10 md:h-12 md:w-12 object-contain"
+                />
+                <div className="text-white">
+                  <div className="text-sm md:text-lg font-semibold leading-tight">POPULAR MEDICAL</div>
+                  <div className="text-xs md:text-sm font-medium text-gray-300 hidden sm:block">HOSPITAL SYLHET</div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Mobile Menu Button - Right Side */}
+            <div className="flex lg:hidden pl-4">
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="text-gray-300 hover:text-white focus:outline-none"
+                aria-label="Open menu"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Desktop Navigation and User Info */}
+            <div className="hidden lg:flex flex-1 items-center justify-between">
+              <div className="flex space-x-6 justify-center flex-1">
                 {navigation.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`${
                       pathname === item.href
-                        ? "border-[#007C02] text-gray-900"
-                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
-                    } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+                        ? 'text-white border-b-2 border-white'
+                        : 'text-gray-300 hover:text-white'
+                    } px-2 py-4 text-sm font-medium transition-colors duration-200`}
                   >
                     {item.name}
                   </Link>
                 ))}
               </div>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              <div className="ml-3 relative">
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">
+              <div className="flex items-center space-x-6">
+                <div className="text-right">
+                  <p className="text-sm font-medium text-white">
                     {session?.user?.firstName} {session?.user?.lastName}
-                  </span>
-                  <button
-                    onClick={handleSignOut}
-                    className="text-sm text-gray-700 hover:text-gray-900"
-                  >
-                    Sign out
-                  </button>
+                  </p>
+                  <p className="text-xs font-light text-gray-300">
+                    {session?.user?.role}
+                  </p>
                 </div>
+                <button
+                  onClick={handleSignOut}
+                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          <div className={`lg:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
+            <div className="pt-2 pb-4 space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`${
+                    pathname === item.href
+                      ? 'bg-green-800 text-white'
+                      : 'text-gray-300 hover:bg-green-700 hover:text-white'
+                  } block px-3 py-2 rounded-md text-base font-medium`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <div className="pt-4 border-t border-green-700">
+                <div className="px-3 py-2 text-sm text-gray-300">
+                  Signed in as {session?.user?.firstName} {session?.user?.lastName}
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 hover:bg-green-700 hover:text-white"
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
           </div>
