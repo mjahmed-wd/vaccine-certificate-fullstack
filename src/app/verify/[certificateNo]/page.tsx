@@ -1,9 +1,9 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import VaccinationCertificatePrint from "./print";
 import PrintButton from "./print-button";
 import DownloadButton from "./download-button";
+import { decryptNumber } from "@/lib/crypto";
 
 export const metadata: Metadata = {
   title: "Verify Certificate",
@@ -46,36 +46,62 @@ interface Certificate {
 }
 
 async function getCertificate(certificateNo: string): Promise<Certificate | null> {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/verify/${certificateNo}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL}/api/verify/${certificateNo}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error("Failed to fetch certificate:", error);
     return null;
   }
-
-  return response.json();
 }
 
 export default async function VerifyCertificatePage({
   params,
 }: VerifyCertificatePageProps) {
   const { certificateNo } = await params;
-  const certificate = await getCertificate(certificateNo);
+  
+  // First try to get certificate with the encrypted number
+  let certificate = await getCertificate(certificateNo);
+  
+  // If not found, try with decrypted number
+  if (!certificate) {
+    try {
+      const decryptedNumber = decryptNumber(certificateNo);
+      if (decryptedNumber && decryptedNumber !== 0) {
+        certificate = await getCertificate(decryptedNumber.toString());
+      }
+    } catch (error) {
+      console.error("Failed to decrypt certificate number:", error);
+    }
+  }
 
   if (!certificate) {
-    notFound();
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-4">
+        <h2 className="text-xl font-semibold mb-2">Certificate Not Found</h2>
+        <p className="text-muted-foreground">
+          No certificate found with the provided number
+        </p>
+      </div>
+    );
   }
 
   return (
     <div className="">
-      <VaccinationCertificatePrint />
+      <VaccinationCertificatePrint certificate={certificate} />
 
       <div className="min-h-screen bg-background print:hidden">
         <div className="container mx-auto py-10">
@@ -98,10 +124,14 @@ export default async function VerifyCertificatePage({
           <div className="grid gap-8 md:grid-cols-2">
             <div className="space-y-8">
               <div>
-                <h2 className="text-lg font-semibold mb-4">Patient Information</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Patient Information
+                </h2>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">Name</dt>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Name
+                    </dt>
                     <dd className="text-sm">{certificate.patientName}</dd>
                   </div>
                   {certificate.nidNumber && (
@@ -146,7 +176,9 @@ export default async function VerifyCertificatePage({
 
             <div className="space-y-8">
               <div>
-                <h2 className="text-lg font-semibold mb-4">Vaccination Details</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Vaccination Details
+                </h2>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
@@ -164,13 +196,12 @@ export default async function VerifyCertificatePage({
               </div>
 
               <div>
-                <h2 className="text-lg font-semibold mb-4">Vaccination History</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Vaccination History
+                </h2>
                 <div className="space-y-4">
                   {certificate.vaccinations.map((vaccination) => (
-                    <div
-                      key={vaccination.id}
-                      className="rounded-lg border p-4"
-                    >
+                    <div key={vaccination.id} className="rounded-lg border p-4">
                       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
@@ -189,20 +220,27 @@ export default async function VerifyCertificatePage({
                             Date Administered
                           </dt>
                           <dd className="text-sm">
-                            {format(new Date(vaccination.dateAdministered), "PPP")}
+                            {format(
+                              new Date(vaccination.dateAdministered),
+                              "PPP"
+                            )}
                           </dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
                             Vaccination Center
                           </dt>
-                          <dd className="text-sm">{vaccination.vaccinationCenter}</dd>
+                          <dd className="text-sm">
+                            {vaccination.vaccinationCenter}
+                          </dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
                             Vaccinated By
                           </dt>
-                          <dd className="text-sm">{vaccination.vaccinatedByName}</dd>
+                          <dd className="text-sm">
+                            {vaccination.vaccinatedByName}
+                          </dd>
                         </div>
                       </dl>
                     </div>

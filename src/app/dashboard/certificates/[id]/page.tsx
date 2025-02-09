@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CertificateWithDetails, getCertificate } from "@/lib/api/certificates";
 import { format } from "date-fns";
 import QRCode from "react-qr-code";
+import { encryptText } from "@/lib/crypto";
 
 export const metadata: Metadata = {
   title: "View Certificate",
@@ -28,7 +29,9 @@ export default async function ViewCertificatePage({
 
   console.log(certificate);
 
-  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${certificate.certificateNo}`;
+  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${encryptText(
+    certificate.certificateNo.toString()
+  )}`;
 
   return (
     <div className="container mx-auto py-10">
@@ -163,6 +166,7 @@ export default async function ViewCertificatePage({
             <div className="flex justify-center rounded-lg border p-8">
               <QRCode value={qrValue} />
             </div>
+            <p>{qrValue}</p>
             <p className="text-center text-sm text-muted-foreground">
               Scan this QR code to verify the certificate
             </p>

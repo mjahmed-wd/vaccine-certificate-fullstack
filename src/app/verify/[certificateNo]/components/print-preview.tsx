@@ -1,6 +1,7 @@
 "use client";
 
 import { CertificateWithDetails } from "@/lib/api/certificates";
+import { encryptText } from "@/lib/crypto";
 import { format } from "date-fns";
 import { useParams } from "next/navigation";
 /* eslint-disable @next/next/no-img-element */
@@ -12,7 +13,9 @@ interface PrintPreviewProps {
 
 const PrintPreview = ({ certificate }: PrintPreviewProps) => {
   const { certificateNo } = useParams();
-  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${certificate.certificateNo}`;
+  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${encryptText(
+    certificate.certificateNo.toString()
+  )}`;
 
   return (
     <div className="min-h-screen bg-white print:min-h-0 hidden print:block">
@@ -128,7 +131,10 @@ const PrintPreview = ({ certificate }: PrintPreviewProps) => {
                           {vaccination.vaccineName || "N/A"}
                         </td>
                         <td className="py-2 px-3 text-gray-800 print:py-1 whitespace-nowrap">
-                          {format(new Date(vaccination.dateAdministered), "dd-MM-yyyy")}
+                          {format(
+                            new Date(vaccination.dateAdministered),
+                            "dd-MM-yyyy"
+                          )}
                         </td>
                         <td className="py-2 px-3 text-gray-800 print:py-1">
                           {vaccination.vaccinationCenter || "N/A"}
@@ -146,10 +152,12 @@ const PrintPreview = ({ certificate }: PrintPreviewProps) => {
           {/* Verification Section */}
           <div className="text-center border-t border-gray-100 pt-6 print:pt-4 print:mt-4">
             <p className="text-sm text-gray-600 mb-2">
-              Verify this certificate at: {process.env.NEXT_PUBLIC_APP_URL}/verify/{certificateNo}
+              Verify this certificate at: {process.env.NEXT_PUBLIC_APP_URL}
+              /verify/{certificateNo}
             </p>
             <p className="text-xs text-gray-500 italic print:mb-0">
-              This is a system-generated certificate and does not require a signature.
+              This is a system-generated certificate and does not require a
+              signature.
             </p>
           </div>
         </div>
