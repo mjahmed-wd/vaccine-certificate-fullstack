@@ -31,12 +31,21 @@ export type Certificate = {
   isActive: boolean;
   vaccine: {
     name: string;
+    totalDose: number;
   };
   vaccinations: Array<{
     id: string;
     vaccineId: string;
     vaccineName: string;
     doseNumber: number;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedById: string;
+    vaccinatedByName: string;
+  }>;
+  boosterDoses: Array<{
+    id: string;
+    vaccineId: string;
     dateAdministered: string;
     vaccinationCenter: string;
     vaccinatedById: string;
@@ -70,8 +79,39 @@ export const columns: ColumnDef<Certificate>[] = [
     header: "Vaccine",
   },
   {
-    accessorKey: "doseNumber",
-    header: "Dose Number",
+    id: "vaccinations",
+    header: "Dose Taken",
+    cell: ({ row }) => {
+      const doseCount = row.original.vaccinations?.length || 0;
+      const totalDoses = row.original.vaccine.totalDose || 0;
+      const isComplete = doseCount === totalDoses;
+      
+      return (
+        <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded ${
+          isComplete 
+            ? "text-green-100 bg-green-600" 
+            : "text-red-100 bg-red-600"
+        }`}>
+          {doseCount} / {totalDoses}
+        </span>
+      );
+    },
+  },
+  {
+    id: "boosterDoses",
+    header: "Booster Doses",
+    cell: ({ row }) => {
+      const boosterCount = row.original.boosterDoses?.length || 0;
+      return (
+        <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded ${
+          boosterCount > 0 
+            ? "text-green-100 bg-green-600" 
+            : "text-gray-100 bg-gray-600"
+        }`}>
+          {boosterCount}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "dateAdministered",

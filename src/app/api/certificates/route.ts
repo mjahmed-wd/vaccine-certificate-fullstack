@@ -24,8 +24,11 @@ export async function GET() {
         vaccine: {
           select: {
             name: true,
+            totalDose: true,
           },
         },
+        vaccinations: true,
+        boosterDoses: true,
       },
       orderBy: {
         createdAt: "desc",
