@@ -29,9 +29,32 @@ export async function GET(
             dateAdministered: true,
             vaccinationCenter: true,
             vaccinatedByName: true,
+            providerId: true,
+            provider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
           orderBy: {
             doseNumber: "asc",
+          },
+        },
+        boosterDoses: {
+          select: {
+            id: true,
+            vaccineId: true,
+            dateAdministered: true,
+            vaccinationCenter: true,
+            vaccinatedByName: true,
+            providerId: true,
+            provider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
