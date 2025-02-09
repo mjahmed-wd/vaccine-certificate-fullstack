@@ -26,6 +26,7 @@ import { createCertificate } from "@/lib/api/certificates";
 import { useToast } from "@/components/ui/use-toast";
 import { getVaccines, type Vaccine, getVaccineById } from "@/lib/api/vaccines";
 import { type Certificate } from "@prisma/client";
+import { useSession } from "next-auth/react";
 
 interface VaccineWithProviders extends Vaccine {
   providers: Array<{
@@ -36,6 +37,10 @@ interface VaccineWithProviders extends Vaccine {
 
 const formSchema = z.object({
   patientName: z.string().min(1, "Patient name is required"),
+  fatherName: z.string().min(1, "Father's name is required"),
+  motherName: z.string().min(1, "Mother's name is required"),
+  permanentAddress: z.string().min(1, "Permanent address is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   nidNumber: z.string().optional(),
   passportNumber: z.string().optional(),
   nationality: z.string().min(1, "Nationality is required"),
@@ -63,6 +68,7 @@ interface PreviousCertificateDetails extends Certificate {
 export function CreateCertificateForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { data: session, status } = useSession();
   const [vaccines, setVaccines] = useState<VaccineWithProviders[]>([]);
   const [selectedVaccine, setSelectedVaccine] = useState<VaccineWithProviders | null>(null);
   const [previousCertificateDetails, setPreviousCertificateDetails] =
@@ -91,6 +97,10 @@ export function CreateCertificateForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientName: "",
+      fatherName: "",
+      motherName: "",
+      permanentAddress: "",
+      phoneNumber: "",
       nidNumber: "",
       passportNumber: "",
       nationality: "",
@@ -162,6 +172,10 @@ export function CreateCertificateForm() {
 
       // Set form values and store certificate details
       form.setValue("patientName", certificateData.patientName);
+      form.setValue("fatherName", certificateData.fatherName || "");
+      form.setValue("motherName", certificateData.motherName || "");
+      form.setValue("permanentAddress", certificateData.permanentAddress || "");
+      form.setValue("phoneNumber", certificateData.phoneNumber || "");
       form.setValue("nidNumber", certificateData.nidNumber || "");
       form.setValue("passportNumber", certificateData.passportNumber || "");
       form.setValue("nationality", certificateData.nationality);
@@ -184,6 +198,26 @@ export function CreateCertificateForm() {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      if (!session || status !== "authenticated") {
+        toast({
+          title: "Error",
+          description: "You must be logged in to create a certificate",
+          variant: "destructive",
+        });
+        router.push("/login");
+        return;
+      }
+
+      console.log("Session status:", status);
+      console.log("Current session:", {
+        exists: !!session,
+        user: session?.user ? {
+          id: session.user.id,
+          role: session.user.role,
+          center: session.user.center
+        } : null
+      });
+
       // Log the complete form data
       console.log("Form submission data:", {
         ...data,
@@ -503,6 +537,62 @@ export function CreateCertificateForm() {
                     <FormLabel>Patient Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter patient name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fatherName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Father's Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter father's name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="motherName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mother's Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter mother's name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="permanentAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Permanent Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter permanent address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter phone number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

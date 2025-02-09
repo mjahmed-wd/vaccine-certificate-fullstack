@@ -13,6 +13,10 @@ export async function GET() {
         nationality: true,
         patientName: true,
         dateOfBirth: true,
+        fatherName: true,
+        motherName: true,
+        permanentAddress: true,
+        phoneNumber: true,
         gender: true,
         doseNumber: true,
         dateAdministered: true,
@@ -41,9 +45,25 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session) {
-      console.log("No session found");
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    
+    // More detailed session logging
+    console.log("Session details:", {
+      exists: !!session,
+      user: session?.user ? {
+        id: session?.user?.id,
+        firstName: session?.user?.firstName,
+        lastName: session?.user?.lastName,
+        center: session?.user?.center,
+        complete: !!(session?.user?.id && session?.user?.firstName && session?.user?.lastName && session?.user?.center)
+      } : null
+    });
+
+    if (!session?.user?.id || !session?.user?.firstName || !session?.user?.lastName || !session?.user?.center) {
+      console.log("Invalid session state:", { session });
+      return NextResponse.json({ 
+        error: "Unauthorized - Invalid session state",
+        details: "Missing required session information"
+      }, { status: 401 });
     }
 
     const json = await request.json();
@@ -61,39 +81,25 @@ export async function POST(request: Request) {
       doseNumber,
       previousCertificateNo,
       dateAdministered,
+      fatherName,
+      motherName,
+      permanentAddress,
+      phoneNumber,
     } = json;
 
-    // Log all extracted data
-    console.log("Extracted data:", {
-      nidNumber,
-      passportNumber,
-      nationality,
-      patientName,
-      dateOfBirth,
-      gender,
-      vaccineId,
-      providerId,
-      doseNumber,
-      previousCertificateNo,
-      dateAdministered,
-      sessionUser: {
-        id: session.user.id,
-        center: session.user.center,
-        name: `${session.user.firstName} ${session.user.lastName}`
-      }
-    });
-
-    // Validate required fields
-    if (!patientName || !nationality || !dateOfBirth || !gender || !vaccineId || !providerId || !dateAdministered) {
-      console.log("Missing required fields:", {
-        patientName: !patientName,
-        nationality: !nationality,
-        dateOfBirth: !dateOfBirth,
-        gender: !gender,
-        vaccineId: !vaccineId,
-        providerId: !providerId,
-        dateAdministered: !dateAdministered
-      });
+    if (
+      !patientName ||
+      !nationality ||
+      !dateOfBirth ||
+      !gender ||
+      !vaccineId ||
+      !providerId ||
+      !dateAdministered ||
+      !fatherName ||
+      !motherName ||
+      !permanentAddress ||
+      !phoneNumber
+    ) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -104,14 +110,6 @@ export async function POST(request: Request) {
     const birthDate = new Date(dateOfBirth);
     const administeredDate = new Date(dateAdministered);
     const currentDate = new Date();
-
-    console.log("Date validation:", {
-      birthDate,
-      administeredDate,
-      currentDate,
-      isBirthDateValid: !isNaN(birthDate.getTime()),
-      isAdministeredDateValid: !isNaN(administeredDate.getTime())
-    });
 
     if (isNaN(birthDate.getTime())) {
       return NextResponse.json(
@@ -128,31 +126,29 @@ export async function POST(request: Request) {
     }
 
     if (birthDate > currentDate) {
-      console.log("Date of birth is in future");
       return new NextResponse(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Date of birth cannot be in the future",
           providedDate: dateOfBirth,
-          currentDate: currentDate.toISOString()
+          currentDate: currentDate.toISOString(),
         }),
-        { 
+        {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
 
     if (administeredDate > currentDate) {
-      console.log("Date administered is in future");
       return new NextResponse(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Date administered cannot be in the future",
           providedDate: dateAdministered,
-          currentDate: currentDate.toISOString()
+          currentDate: currentDate.toISOString(),
         }),
-        { 
+        {
           status: 400,
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
@@ -165,22 +161,12 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log("Found vaccine:", JSON.stringify(vaccine, null, 2));
-
     if (!vaccine) {
-      return NextResponse.json(
-        { error: "Vaccine not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Vaccine not found" }, { status: 404 });
     }
 
     // Verify provider exists and is associated with the vaccine
-    const provider = vaccine.providers.find(p => p.id === providerId);
-    console.log("Provider check:", {
-      providerId,
-      foundProvider: provider ? provider.id : null,
-      allProviders: vaccine.providers.map(p => ({ id: p.id, name: p.name }))
-    });
+    const provider = vaccine.providers.find((p) => p.id === providerId);
 
     if (!provider) {
       return NextResponse.json(
@@ -201,7 +187,10 @@ export async function POST(request: Request) {
     if (doseNumber > 1) {
       if (!previousCertificateNo) {
         return NextResponse.json(
-          { error: "Previous certificate number is required for doses after first dose" },
+          {
+            error:
+              "Previous certificate number is required for doses after first dose",
+          },
           { status: 400 }
         );
       }
@@ -224,17 +213,17 @@ export async function POST(request: Request) {
       // Validate that the vaccine matches
       if (previousCertificate.vaccineId !== vaccineId) {
         return NextResponse.json(
-          { 
-            error: "Vaccine mismatch", 
+          {
+            error: "Vaccine mismatch",
             details: {
               currentVaccine: vaccine.name,
               previousVaccine: previousCertificate.vaccine.name,
               certificateDetails: {
                 patientName: previousCertificate.patientName,
                 certificateNo: previousCertificate.certificateNo,
-                vaccineId: previousCertificate.vaccineId
-              }
-            }
+                vaccineId: previousCertificate.vaccineId,
+              },
+            },
           },
           { status: 400 }
         );
@@ -254,9 +243,17 @@ export async function POST(request: Request) {
             passportNumber: previousCertificate.passportNumber,
             nationality: previousCertificate.nationality,
             patientName: previousCertificate.patientName,
+            fatherName: previousCertificate.fatherName,
+            motherName: previousCertificate.motherName,
+            permanentAddress: previousCertificate.permanentAddress,
+            phoneNumber: previousCertificate.phoneNumber,
             dateOfBirth: previousCertificate.dateOfBirth,
             gender: previousCertificate.gender,
-            vaccineId,
+            vaccine: {
+              connect: {
+                id: vaccineId,
+              },
+            },
             doseNumber,
             dateAdministered: new Date(dateAdministered),
             vaccinations: {
@@ -303,9 +300,17 @@ export async function POST(request: Request) {
         passportNumber,
         nationality,
         patientName,
+        fatherName,
+        motherName,
+        permanentAddress,
+        phoneNumber,
         dateOfBirth: new Date(dateOfBirth),
         gender,
-        vaccineId,
+        vaccine: {
+          connect: {
+            id: vaccineId
+          }
+        },
         doseNumber,
         dateAdministered: new Date(dateAdministered),
         vaccinations: {
@@ -317,9 +322,9 @@ export async function POST(request: Request) {
             vaccinationCenter: session.user.center,
             vaccinatedById: session.user.id,
             vaccinatedByName: `${session.user.firstName} ${session.user.lastName}`,
-            providerId,
-          },
-        },
+            providerId
+          }
+        }
       },
       include: {
         vaccine: true,
@@ -327,47 +332,51 @@ export async function POST(request: Request) {
           include: {
             provider: true
           }
-        },
-      },
+        }
+      }
+    });
+
+    // Log the certificate creation result
+    console.log("Certificate creation result:", {
+      success: !!certificate,
+      certificateId: certificate?.id,
+      hasVaccinations: certificate?.vaccinations?.length > 0
     });
 
     if (!certificate) {
-      return new NextResponse(
-        JSON.stringify({ error: "Failed to create certificate record" }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return NextResponse.json({ 
+        error: "Failed to create certificate record",
+        details: "Database operation returned null"
+      }, { status: 500 });
     }
 
-    return new NextResponse(
-      JSON.stringify(certificate),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    const response = NextResponse.json(certificate);
+    return response;
+
   } catch (error) {
-    console.error("Failed to create certificate:", error);
-    
+    console.error("Certificate creation error:", {
+      error,
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
     let errorMessage = "Failed to create certificate";
     let statusCode = 500;
-    const details = error instanceof Error ? error.message : 'Unknown error';
+    const details = error instanceof Error ? error.message : "Unknown error";
 
-    if (error instanceof Error && 'code' in error) {
+    if (error instanceof Error && "code" in error) {
       const prismaError = error as { code: string };
       switch (prismaError.code) {
-        case 'P2002':
-          errorMessage = 'A certificate with this number already exists';
+        case "P2002":
+          errorMessage = "A certificate with this number already exists";
           statusCode = 400;
           break;
-        case 'P2003':
-          errorMessage = 'Invalid reference (foreign key constraint failed)';
+        case "P2003":
+          errorMessage = "Invalid reference (foreign key constraint failed)";
           statusCode = 400;
           break;
-        case 'P2025':
-          errorMessage = 'Record not found';
+        case "P2025":
+          errorMessage = "Record not found";
           statusCode = 404;
           break;
         default:
@@ -375,12 +384,14 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ 
+    const errorResponse = NextResponse.json({
       error: errorMessage,
       details,
       timestamp: new Date().toISOString()
-    }, { 
-      status: statusCode 
+    }, {
+      status: statusCode
     });
+
+    return errorResponse;
   }
 }
