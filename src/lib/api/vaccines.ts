@@ -7,6 +7,10 @@ export interface Vaccine {
   totalDose: number;
   createdAt: string;
   updatedAt: string;
+  providers: Array<{
+    id: string;
+    name: string;
+  }>;
 }
 
 export async function getVaccines(): Promise<Vaccine[]> {

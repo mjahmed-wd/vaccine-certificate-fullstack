@@ -16,6 +16,10 @@ export interface CertificateWithDetails extends Certificate {
     vaccinatedById: string;
     vaccinatedByName: string;
     vaccine: Vaccine;
+    provider: {
+      id: string;
+      name: string;
+    };
     vaccinatedBy: {
       firstName: string;
       lastName: string;
@@ -50,8 +54,10 @@ export type CreateCertificateData = {
   dateOfBirth: string;
   gender: string;
   vaccineId: string;
+  providerId: string;
   doseNumber: number;
   dateAdministered: string;
+  previousCertificateNo?: string;
 };
 
 export async function createCertificate(

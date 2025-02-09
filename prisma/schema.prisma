@@ -37,19 +37,20 @@ model Vaccine {
 }
 
 model VaccineProvider {
-    id        String   @id @default(uuid())
-    name      String
-    vaccineId String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    vaccine   Vaccine  @relation(fields: [vaccineId], references: [id])
+    id                String              @id @default(uuid())
+    name              String
+    vaccineId         String
+    createdAt         DateTime            @default(now())
+    updatedAt         DateTime            @updatedAt
+    vaccine           Vaccine             @relation(fields: [vaccineId], references: [id])
+    vaccinationRecords VaccinationRecord[]
 
     @@index([vaccineId])
 }
 
 model Certificate {
     id               String   @id @default(uuid())
-    certificateNo    String   @unique @default("P-000001") // Changed to String to support prefix
+    certificateNo    Int      @unique @default(autoincrement())
     nidNumber        String?
     passportNumber   String?
     nationality      String
@@ -81,6 +82,8 @@ model VaccinationRecord {
     vaccinationCenter String
     vaccinatedById    String
     vaccinatedByName  String
+    providerId        String
+    provider          VaccineProvider @relation(fields: [providerId], references: [id])
     createdAt         DateTime @default(now())
     updatedAt         DateTime @updatedAt
 
@@ -90,6 +93,7 @@ model VaccinationRecord {
     @@index([certificateId])
     @@index([vaccineId])
     @@index([vaccinatedById])
+    @@index([providerId])
 }
 
 enum Role {

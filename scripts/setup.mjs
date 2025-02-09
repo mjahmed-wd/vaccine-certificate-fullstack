@@ -57,6 +57,9 @@ async function setup() {
           ],
         },
       },
+      include: {
+        providers: true
+      }
     });
 
     await prisma.vaccine.create({
@@ -89,6 +92,7 @@ async function setup() {
             vaccinationCenter: "Main Center",
             vaccinatedById: admin.id,
             vaccinatedByName: `${admin.firstName} ${admin.lastName}`,
+            providerId: vaccine1.providers[0].id,
           },
         },
       },

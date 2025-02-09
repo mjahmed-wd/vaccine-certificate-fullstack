@@ -106,6 +106,15 @@ export default async function ViewCertificatePage({
                   Vaccine
                 </dt>
                 <dd className="text-sm">{certificate.vaccine?.name}</dd>
+                <dd className="text-sm">{certificate.vaccine?.name}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  Provider
+                </dt>
+                <dd className="text-sm">
+                  {certificate.vaccinations[certificate.vaccinations.length - 1]?.provider?.name || "N/A"}
+                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">
@@ -146,6 +155,12 @@ export default async function ViewCertificatePage({
                         Vaccine
                       </dt>
                       <dd className="text-sm">{vaccination.vaccineName}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm font-medium text-muted-foreground">
+                        Provider
+                      </dt>
+                      <dd className="text-sm">{vaccination.provider?.name || "N/A"}</dd>
                     </div>
                     <div>
                       <dt className="text-sm font-medium text-muted-foreground">

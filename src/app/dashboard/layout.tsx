@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-'use client';
+"use client";
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -18,13 +18,12 @@ export default function DashboardLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard" },
-    ...(session?.user?.role === "ADMIN" 
+    ...(session?.user?.role === "ADMIN"
       ? [
           { name: "Users", href: "/dashboard/users" },
           { name: "Vaccines", href: "/dashboard/vaccines" },
-        ] 
-      : []
-    ),
+        ]
+      : []),
     { name: "Certificates", href: "/dashboard/certificates" },
   ];
 
@@ -45,15 +44,23 @@ export default function DashboardLayout({
           <div className="flex justify-between items-center h-20">
             {/* Logo and Title - Left Side */}
             <div className="flex items-center flex-1">
-              <Link href="/dashboard" className="flex items-center space-x-2 md:space-x-4">
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-2 md:space-x-4"
+              >
                 <img
                   src="/popular-logo.png"
                   alt="Hospital Logo"
                   className="h-10 w-10 md:h-12 md:w-12 object-contain"
                 />
                 <div className="text-white">
-                  <div className="text-sm md:text-lg font-semibold leading-tight">POPULAR MEDICAL</div>
-                  <div className="text-xs md:text-sm font-medium text-gray-300 hidden sm:block">HOSPITAL SYLHET</div>
+                  <div className="text-sm md:text-lg font-semibold leading-tight">
+                    {" "}
+                    POPULAR MEDICAL CENTRE & HOSPITAL SYLHET
+                  </div>
+                  {/* <div className="text-xs md:text-sm font-medium text-gray-300 hidden sm:block">
+                    HOSPITAL SYLHET
+                  </div> */}
                 </div>
               </Link>
             </div>
@@ -65,8 +72,18 @@ export default function DashboardLayout({
                 className="text-gray-300 hover:text-white focus:outline-none"
                 aria-label="Open menu"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
                 </svg>
               </button>
             </div>
@@ -80,8 +97,8 @@ export default function DashboardLayout({
                     href={item.href}
                     className={`${
                       pathname === item.href
-                        ? 'text-white border-b-2 border-white'
-                        : 'text-gray-300 hover:text-white'
+                        ? "text-white border-b-2 border-white"
+                        : "text-gray-300 hover:text-white"
                     } px-2 py-4 text-sm font-medium transition-colors duration-200`}
                   >
                     {item.name}
@@ -109,7 +126,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Mobile Menu */}
-          <div className={`lg:hidden ${isMenuOpen ? 'block' : 'hidden'}`}>
+          <div className={`lg:hidden ${isMenuOpen ? "block" : "hidden"}`}>
             <div className="pt-2 pb-4 space-y-1">
               {navigation.map((item) => (
                 <Link
@@ -117,8 +134,8 @@ export default function DashboardLayout({
                   href={item.href}
                   className={`${
                     pathname === item.href
-                      ? 'bg-green-800 text-white'
-                      : 'text-gray-300 hover:bg-green-700 hover:text-white'
+                      ? "bg-green-800 text-white"
+                      : "text-gray-300 hover:bg-green-700 hover:text-white"
                   } block px-3 py-2 rounded-md text-base font-medium`}
                 >
                   {item.name}
@@ -126,7 +143,8 @@ export default function DashboardLayout({
               ))}
               <div className="pt-4 border-t border-green-700">
                 <div className="px-3 py-2 text-sm text-gray-300">
-                  Signed in as {session?.user?.firstName} {session?.user?.lastName}
+                  Signed in as {session?.user?.firstName}{" "}
+                  {session?.user?.lastName}
                 </div>
                 <button
                   onClick={handleLogout}
@@ -145,4 +163,4 @@ export default function DashboardLayout({
       </main>
     </div>
   );
-} 
+}

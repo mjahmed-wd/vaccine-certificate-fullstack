@@ -27,6 +27,13 @@ import { useToast } from "@/components/ui/use-toast";
 import { getVaccines, type Vaccine, getVaccineById } from "@/lib/api/vaccines";
 import { type Certificate } from "@prisma/client";
 
+interface VaccineWithProviders extends Vaccine {
+  providers: Array<{
+    id: string;
+    name: string;
+  }>;
+}
+
 const formSchema = z.object({
   patientName: z.string().min(1, "Patient name is required"),
   nidNumber: z.string().optional(),
@@ -35,8 +42,13 @@ const formSchema = z.object({
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]),
   vaccineId: z.string().min(1, "Vaccine is required"),
+  providerId: z.string().min(1, "Provider is required"),
   doseNumber: z.coerce.number().min(1, "Dose number is required"),
-  previousCertificateNo: z.string().optional(),
+  previousCertificateNo: z.string()
+    .refine(val => !val || !isNaN(parseInt(val)), {
+      message: "Previous certificate number must be a valid number"
+    })
+    .optional(),
   dateAdministered: z.string().min(1, "Date administered is required"),
 });
 
@@ -51,8 +63,8 @@ interface PreviousCertificateDetails extends Certificate {
 export function CreateCertificateForm() {
   const router = useRouter();
   const { toast } = useToast();
-  const [vaccines, setVaccines] = useState<Vaccine[]>([]);
-  const [selectedVaccine, setSelectedVaccine] = useState<Vaccine | null>(null);
+  const [vaccines, setVaccines] = useState<VaccineWithProviders[]>([]);
+  const [selectedVaccine, setSelectedVaccine] = useState<VaccineWithProviders | null>(null);
   const [previousCertificateDetails, setPreviousCertificateDetails] =
     useState<PreviousCertificateDetails | null>(null);
   const [isValidatingCertificate, setIsValidatingCertificate] = useState(false);
@@ -85,6 +97,7 @@ export function CreateCertificateForm() {
       dateOfBirth: "",
       gender: "MALE",
       vaccineId: "",
+      providerId: "",
       doseNumber: 1,
       previousCertificateNo: "",
       dateAdministered: new Date().toISOString().split("T")[0],
@@ -119,7 +132,7 @@ export function CreateCertificateForm() {
 
     try {
       const certificateResponse = await fetch(
-        `/api/certificates/by-number/${previousNo}`
+        `/api/certificates/by-number/${parseInt(previousNo, 10)}`
       );
       const certificateData = await certificateResponse.json();
       if (certificateData.error) {
@@ -165,8 +178,6 @@ export function CreateCertificateForm() {
       } else {
         setValidationError("Failed to validate certificate");
       }
-      // setPreviousCertificateDetails(null);
-      // setPreviousCertificateDetails(null);
     } finally {
       setIsValidatingCertificate(false);
     }
@@ -174,6 +185,41 @@ export function CreateCertificateForm() {
 
   const onSubmit = async (data: FormValues) => {
     try {
+      // Log the complete form data
+      console.log("Form submission data:", {
+        ...data,
+        selectedVaccine: selectedVaccine ? {
+          id: selectedVaccine.id,
+          name: selectedVaccine.name,
+          totalDose: selectedVaccine.totalDose,
+          providers: selectedVaccine.providers
+        } : null,
+        dateOfBirth: new Date(data.dateOfBirth).toISOString(),
+        dateAdministered: new Date(data.dateAdministered).toISOString()
+      });
+
+      // Validate required fields
+      if (!data.patientName || !data.nationality || !data.dateOfBirth || !data.gender || !data.vaccineId || !data.providerId || !data.dateAdministered) {
+        const missingFields = Object.entries({
+          patientName: !data.patientName,
+          nationality: !data.nationality,
+          dateOfBirth: !data.dateOfBirth,
+          gender: !data.gender,
+          vaccineId: !data.vaccineId,
+          providerId: !data.providerId,
+          dateAdministered: !data.dateAdministered
+        }).filter(([, missing]) => missing).map(([field]) => field);
+
+        console.error("Missing required fields:", missingFields);
+        
+        toast({
+          title: "Error",
+          description: `Missing required fields: ${missingFields.join(", ")}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validate dose number against vaccine total dose
       if (selectedVaccine && data.doseNumber > selectedVaccine.totalDose) {
         toast({
@@ -188,24 +234,40 @@ export function CreateCertificateForm() {
       if (data.doseNumber > 1 && !data.previousCertificateNo) {
         toast({
           title: "Error",
-          description:
-            "Previous certificate number is required for doses after first dose",
+          description: "Previous certificate number is required for doses after first dose",
           variant: "destructive",
         });
         return;
       }
 
-      await createCertificate(data);
+      // Format dates
+      const formattedData = {
+        ...data,
+        dateOfBirth: new Date(data.dateOfBirth).toISOString(),
+        dateAdministered: new Date(data.dateAdministered).toISOString()
+      };
+
+      console.log("Sending formatted data to API:", formattedData);
+
+      const response = await createCertificate(formattedData);
+      console.log("Certificate creation response:", response);
+
+      // Check if response is an error response
+      if ('error' in response) {
+        throw new Error(typeof response.error === 'string' ? response.error : 'Failed to create certificate');
+      }
+
       toast({
         title: "Success",
         description: "Certificate created successfully",
       });
       router.push("/dashboard/certificates");
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("Certificate creation error:", error);
       toast({
         title: "Error",
-        description: "Failed to create certificate",
+        description: error instanceof Error ? error.message : "Failed to create certificate",
         variant: "destructive",
       });
     }
@@ -224,8 +286,9 @@ export function CreateCertificateForm() {
                 <Select
                   onValueChange={(value) => {
                     field.onChange(value);
-                    // Reset dose number when vaccine changes
+                    // Reset dose number and provider when vaccine changes
                     form.setValue("doseNumber", 1);
+                    form.setValue("providerId", "");
                   }}
                   defaultValue={field.value}
                 >
@@ -250,6 +313,40 @@ export function CreateCertificateForm() {
               </FormItem>
             )}
           />
+
+          {selectedVaccine && selectedVaccine.providers.length > 0 && (
+            <FormField
+              control={form.control}
+              name="providerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Provider</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {selectedVaccine.providers.map((provider) => (
+                        <SelectItem
+                          key={provider.id}
+                          value={provider.id}
+                          className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                        >
+                          {provider.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

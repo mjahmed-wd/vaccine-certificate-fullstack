@@ -42,10 +42,13 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session) {
+      console.log("No session found");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const json = await request.json();
+    console.log("Received request data:", JSON.stringify(json, null, 2));
+
     const {
       nidNumber,
       passportNumber,
@@ -54,21 +57,135 @@ export async function POST(request: Request) {
       dateOfBirth,
       gender,
       vaccineId,
+      providerId,
       doseNumber,
       previousCertificateNo,
       dateAdministered,
     } = json;
 
-    // Get vaccine details
+    // Log all extracted data
+    console.log("Extracted data:", {
+      nidNumber,
+      passportNumber,
+      nationality,
+      patientName,
+      dateOfBirth,
+      gender,
+      vaccineId,
+      providerId,
+      doseNumber,
+      previousCertificateNo,
+      dateAdministered,
+      sessionUser: {
+        id: session.user.id,
+        center: session.user.center,
+        name: `${session.user.firstName} ${session.user.lastName}`
+      }
+    });
+
+    // Validate required fields
+    if (!patientName || !nationality || !dateOfBirth || !gender || !vaccineId || !providerId || !dateAdministered) {
+      console.log("Missing required fields:", {
+        patientName: !patientName,
+        nationality: !nationality,
+        dateOfBirth: !dateOfBirth,
+        gender: !gender,
+        vaccineId: !vaccineId,
+        providerId: !providerId,
+        dateAdministered: !dateAdministered
+      });
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Validate dates
+    const birthDate = new Date(dateOfBirth);
+    const administeredDate = new Date(dateAdministered);
+    const currentDate = new Date();
+
+    console.log("Date validation:", {
+      birthDate,
+      administeredDate,
+      currentDate,
+      isBirthDateValid: !isNaN(birthDate.getTime()),
+      isAdministeredDateValid: !isNaN(administeredDate.getTime())
+    });
+
+    if (isNaN(birthDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid date of birth format" },
+        { status: 400 }
+      );
+    }
+
+    if (isNaN(administeredDate.getTime())) {
+      return NextResponse.json(
+        { error: "Invalid administered date format" },
+        { status: 400 }
+      );
+    }
+
+    if (birthDate > currentDate) {
+      console.log("Date of birth is in future");
+      return new NextResponse(
+        JSON.stringify({ 
+          error: "Date of birth cannot be in the future",
+          providedDate: dateOfBirth,
+          currentDate: currentDate.toISOString()
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    if (administeredDate > currentDate) {
+      console.log("Date administered is in future");
+      return new NextResponse(
+        JSON.stringify({ 
+          error: "Date administered cannot be in the future",
+          providedDate: dateAdministered,
+          currentDate: currentDate.toISOString()
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Get vaccine details with providers
     const vaccine = await db.vaccine.findUnique({
       where: { id: vaccineId },
-      select: { name: true, totalDose: true },
+      include: {
+        providers: true,
+      },
     });
+
+    console.log("Found vaccine:", JSON.stringify(vaccine, null, 2));
 
     if (!vaccine) {
       return NextResponse.json(
         { error: "Vaccine not found" },
         { status: 404 }
+      );
+    }
+
+    // Verify provider exists and is associated with the vaccine
+    const provider = vaccine.providers.find(p => p.id === providerId);
+    console.log("Provider check:", {
+      providerId,
+      foundProvider: provider ? provider.id : null,
+      allProviders: vaccine.providers.map(p => ({ id: p.id, name: p.name }))
+    });
+
+    if (!provider) {
+      return NextResponse.json(
+        { error: "Invalid provider for the selected vaccine" },
+        { status: 400 }
       );
     }
 
@@ -90,7 +207,7 @@ export async function POST(request: Request) {
       }
 
       const previousCertificate = await db.certificate.findUnique({
-        where: { certificateNo: parseInt(previousCertificateNo) },
+        where: { certificateNo: previousCertificateNo },
         include: {
           vaccinations: true,
           vaccine: true,
@@ -127,7 +244,7 @@ export async function POST(request: Request) {
       const [, certificate] = await db.$transaction([
         // Deactivate previous certificate
         db.certificate.update({
-          where: { certificateNo: parseInt(previousCertificateNo) },
+          where: { certificateNo: previousCertificateNo },
           data: { isActive: false },
         }),
         // Create new certificate
@@ -153,6 +270,7 @@ export async function POST(request: Request) {
                   vaccinationCenter: v.vaccinationCenter,
                   vaccinatedById: v.vaccinatedById,
                   vaccinatedByName: v.vaccinatedByName,
+                  providerId: v.providerId,
                 })),
                 // Add new vaccination record
                 {
@@ -163,6 +281,7 @@ export async function POST(request: Request) {
                   vaccinationCenter: session.user.center,
                   vaccinatedById: session.user.id,
                   vaccinatedByName: `${session.user.firstName} ${session.user.lastName}`,
+                  providerId,
                 },
               ],
             },
@@ -198,21 +317,70 @@ export async function POST(request: Request) {
             vaccinationCenter: session.user.center,
             vaccinatedById: session.user.id,
             vaccinatedByName: `${session.user.firstName} ${session.user.lastName}`,
+            providerId,
           },
         },
       },
       include: {
         vaccine: true,
-        vaccinations: true,
+        vaccinations: {
+          include: {
+            provider: true
+          }
+        },
       },
     });
 
-    return NextResponse.json(certificate);
+    if (!certificate) {
+      return new NextResponse(
+        JSON.stringify({ error: "Failed to create certificate record" }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    return new NextResponse(
+      JSON.stringify(certificate),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (error) {
     console.error("Failed to create certificate:", error);
-    return NextResponse.json(
-      { error: "Failed to create certificate" },
-      { status: 500 }
-    );
+    
+    let errorMessage = "Failed to create certificate";
+    let statusCode = 500;
+    const details = error instanceof Error ? error.message : 'Unknown error';
+
+    if (error instanceof Error && 'code' in error) {
+      const prismaError = error as { code: string };
+      switch (prismaError.code) {
+        case 'P2002':
+          errorMessage = 'A certificate with this number already exists';
+          statusCode = 400;
+          break;
+        case 'P2003':
+          errorMessage = 'Invalid reference (foreign key constraint failed)';
+          statusCode = 400;
+          break;
+        case 'P2025':
+          errorMessage = 'Record not found';
+          statusCode = 404;
+          break;
+        default:
+          errorMessage = `Database error: ${prismaError.code}`;
+      }
+    }
+
+    return NextResponse.json({ 
+      error: errorMessage,
+      details,
+      timestamp: new Date().toISOString()
+    }, { 
+      status: statusCode 
+    });
   }
 }
