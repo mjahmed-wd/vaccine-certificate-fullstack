@@ -63,6 +63,18 @@ interface PreviousCertificateDetails extends Certificate {
   vaccine?: {
     name: string;
   };
+  vaccinations: Array<{
+    id: string;
+    vaccineId: string;
+    vaccineName: string;
+    doseNumber: number;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedByName: string;
+    provider: {
+      name: string;
+    };
+  }>;
 }
 
 export function CreateCertificateForm() {
@@ -184,6 +196,9 @@ export function CreateCertificateForm() {
         new Date(certificateData.dateOfBirth).toISOString().split("T")[0]
       );
       form.setValue("gender", certificateData.gender);
+      // Set the next dose number based on the previous certificate's vaccination history
+      const nextDoseNumber = certificateData.vaccinations.length + 1;
+      form.setValue("doseNumber", nextDoseNumber);
       setValidationError(null);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -412,19 +427,30 @@ export function CreateCertificateForm() {
             name="doseNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Dose Number</FormLabel>
+                <FormLabel>Is this a subsequent dose?</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={selectedVaccine?.totalDose}
-                    placeholder="Enter dose number"
-                    {...field}
-                  />
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300"
+                      checked={field.value > 1}
+                      onChange={(e) => {
+                        field.onChange(e.target.checked ? 2 : 1);
+                        if (!e.target.checked) {
+                          form.setValue("previousCertificateNo", "");
+                          setPreviousCertificateDetails(null);
+                          setValidationError(null);
+                        }
+                      }}
+                    />
+                    <span className="text-sm text-muted-foreground">
+                      This is not the first dose
+                    </span>
+                  </div>
                 </FormControl>
                 {selectedVaccine && (
                   <p className="text-xs text-muted-foreground">
-                    Maximum doses: {selectedVaccine.totalDose}
+                    Total doses required: {selectedVaccine.totalDose}
                   </p>
                 )}
                 <FormMessage />
@@ -432,7 +458,7 @@ export function CreateCertificateForm() {
             )}
           />
 
-          {watchDoseNumber > 1 && (
+          {form.watch("doseNumber") > 1 && (
             <div className="col-span-2 space-y-4">
               <div className="flex gap-4 items-end">
                 <FormField
@@ -469,57 +495,117 @@ export function CreateCertificateForm() {
               )}
 
               {previousCertificateDetails && (
-                <div className="p-6 border rounded-lg bg-card">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Previous Certificate Details
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Patient Name
-                      </p>
-                      <p className="font-medium">
-                        {previousCertificateDetails.patientName}
-                      </p>
+                <div className="space-y-6">
+                  <div className="p-6 border rounded-lg bg-card">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Previous Certificate Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Patient Name
+                        </p>
+                        <p className="font-medium">
+                          {previousCertificateDetails.patientName}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Certificate Number
+                        </p>
+                        <p className="font-medium">
+                          {previousCertificateDetails.certificateNo}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Vaccine</p>
+                        <p className="font-medium">
+                          {previousCertificateDetails.vaccine?.name ||
+                            "Vaccine not found"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Doses Received
+                        </p>
+                        <p className="font-medium">
+                          {previousCertificateDetails.doseNumber} of {selectedVaccine?.totalDose}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Remaining Doses
+                        </p>
+                        <p className="font-medium">
+                          {selectedVaccine ? 
+                            selectedVaccine.totalDose - previousCertificateDetails.doseNumber : 
+                            "N/A"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Next Dose Number
+                        </p>
+                        <p className="font-medium">
+                          {previousCertificateDetails.doseNumber + 1}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Certificate Number
-                      </p>
-                      <p className="font-medium">
-                        {previousCertificateDetails.certificateNo}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Vaccine</p>
-                      <p className="font-medium">
-                        {previousCertificateDetails.vaccine?.name ||
-                          "Vaccine not found"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Last Dose</p>
-                      <p className="font-medium">
-                        {previousCertificateDetails.doseNumber}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Date of Birth
-                      </p>
-                      <p className="font-medium">
-                        {new Date(
-                          previousCertificateDetails.dateOfBirth
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Nationality
-                      </p>
-                      <p className="font-medium">
-                        {previousCertificateDetails.nationality}
-                      </p>
+                  </div>
+
+                  <div className="p-6 border rounded-lg bg-card">
+                    <h3 className="text-lg font-semibold mb-4">
+                      Previous Vaccination History
+                    </h3>
+                    <div className="space-y-4">
+                      {previousCertificateDetails.vaccinations?.map((vaccination) => (
+                        <div key={vaccination.id} className="p-4 border rounded-lg">
+                          <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Vaccine
+                              </dt>
+                              <dd className="text-sm">{vaccination.vaccineName}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Provider
+                              </dt>
+                              <dd className="text-sm">{vaccination.provider.name}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Dose Number
+                              </dt>
+                              <dd className="text-sm">{vaccination.doseNumber}</dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Date Administered
+                              </dt>
+                              <dd className="text-sm">
+                                {new Date(vaccination.dateAdministered).toLocaleDateString()}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Vaccination Center
+                              </dt>
+                              <dd className="text-sm">
+                                {vaccination.vaccinationCenter}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-sm font-medium text-muted-foreground">
+                                Vaccinated By
+                              </dt>
+                              <dd className="text-sm">
+                                {vaccination.vaccinatedByName}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
