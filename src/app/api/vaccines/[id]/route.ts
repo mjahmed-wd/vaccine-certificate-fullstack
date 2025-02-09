@@ -12,11 +12,30 @@ const vaccineSchema = z.object({
   }))
 });
 
+async function checkAdminAccess() {
+  const session = await auth();
+  if (!session) {
+    return { error: "Unauthorized", status: 401 };
+  }
+  if (session.user.role !== "ADMIN") {
+    return { error: "Forbidden: Admin access required", status: 403 };
+  }
+  return null;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const accessCheck = await checkAdminAccess();
+    if (accessCheck) {
+      return NextResponse.json(
+        { error: accessCheck.error },
+        { status: accessCheck.status }
+      );
+    }
+
     const vaccine = await db.vaccine.findUnique({
       where: {
         id: params.id,
@@ -48,9 +67,12 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const accessCheck = await checkAdminAccess();
+    if (accessCheck) {
+      return NextResponse.json(
+        { error: accessCheck.error },
+        { status: accessCheck.status }
+      );
     }
 
     const json = await request.json();
@@ -113,9 +135,12 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const accessCheck = await checkAdminAccess();
+    if (accessCheck) {
+      return NextResponse.json(
+        { error: accessCheck.error },
+        { status: accessCheck.status }
+      );
     }
 
     await db.vaccine.delete({

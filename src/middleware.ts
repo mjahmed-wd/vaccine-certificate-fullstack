@@ -1,29 +1,49 @@
-import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { withAuth } from "next-auth/middleware";
 
-export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
+export default withAuth(
+  async function middleware(req) {
+    const token = req.nextauth.token;
+    const isAuth = !!token;
+    const isAuthPage = req.nextUrl.pathname === "/login";
+    const isAdminRoute = 
+      req.nextUrl.pathname.startsWith('/dashboard/vaccines') ||
+      req.nextUrl.pathname.startsWith('/dashboard/users');
 
-  if (request.nextUrl.pathname.startsWith("/verify")) {
-    return NextResponse.next();
-  }
-
-  if (!token) {
-    if (request.nextUrl.pathname === "/login") {
-      return NextResponse.next();
+    // Redirect authenticated users from login page to dashboard
+    if (isAuthPage && isAuth) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    return NextResponse.redirect(new URL("/login", request.url));
+    // Check for admin routes
+    if (isAdminRoute && token?.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+
+    return null;
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const isAuth = !!token;
+        const isAuthPage = req.nextUrl.pathname === "/login";
+        
+        // Bypass middleware for login page
+        if (isAuthPage) {
+          return true;
+        }
+        
+        // Require authentication for all other pages
+        return isAuth;
+      },
+    },
   }
+);
 
-  if (request.nextUrl.pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  return NextResponse.next();
-}
-
+// Update matcher to be more specific
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/dashboard/:path*",
+    "/login",
+  ],
 };

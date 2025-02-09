@@ -5,13 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React, { useState } from "react";
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Users", href: "/dashboard/users" },
-  { name: "Vaccines", href: "/dashboard/vaccines" },
-  { name: "Certificates", href: "/dashboard/certificates" },
-];
+import { LogOut } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -22,8 +16,26 @@ export default function DashboardLayout({
   const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/login" });
+  const navigation = [
+    { name: "Dashboard", href: "/dashboard" },
+    ...(session?.user?.role === "ADMIN" 
+      ? [
+          { name: "Users", href: "/dashboard/users" },
+          { name: "Vaccines", href: "/dashboard/vaccines" },
+        ] 
+      : []
+    ),
+    { name: "Certificates", href: "/dashboard/certificates" },
+  ];
+
+  const handleLogout = async () => {
+    try {
+      await signOut({
+        callbackUrl: "/login",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
@@ -86,10 +98,11 @@ export default function DashboardLayout({
                   </p>
                 </div>
                 <button
-                  onClick={handleSignOut}
-                  className="text-gray-300 hover:text-white text-sm font-medium transition-colors duration-200"
+                  onClick={handleLogout}
+                  className="flex items-center px-4 py-2 text-white hover:bg-green-700 rounded-lg transition-colors duration-200"
                 >
-                  Sign Out
+                  <LogOut className="w-5 h-5 mr-2" />
+                  Logout
                 </button>
               </div>
             </div>
@@ -116,8 +129,8 @@ export default function DashboardLayout({
                   Signed in as {session?.user?.firstName} {session?.user?.lastName}
                 </div>
                 <button
-                  onClick={handleSignOut}
-                  className="w-full text-left px-3 py-2 text-sm font-medium text-gray-300 hover:bg-green-700 hover:text-white"
+                  onClick={handleLogout}
+                  className="w-full text-left px-3 py-2 text-sm font-medium text-white hover:bg-green-700 rounded-md"
                 >
                   Sign Out
                 </button>

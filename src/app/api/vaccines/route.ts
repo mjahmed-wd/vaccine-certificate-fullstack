@@ -7,12 +7,32 @@ const vaccineSchema = z.object({
   name: z.string().min(1, "Name is required"),
   totalDose: z.coerce.number().min(1, "Total doses must be at least 1"),
   providers: z.array(z.object({
+    id: z.string().optional(),
     name: z.string().min(1, "Provider name is required")
   }))
 });
 
+async function checkAdminAccess() {
+  const session = await auth();
+  if (!session) {
+    return { error: "Unauthorized", status: 401 };
+  }
+  if (session.user.role !== "ADMIN") {
+    return { error: "Forbidden: Admin access required", status: 403 };
+  }
+  return null;
+}
+
 export async function GET() {
   try {
+    const accessCheck = await checkAdminAccess();
+    if (accessCheck) {
+      return NextResponse.json(
+        { error: accessCheck.error },
+        { status: accessCheck.status }
+      );
+    }
+
     const vaccines = await db.vaccine.findMany({
       include: {
         providers: true
@@ -34,9 +54,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const session = await auth();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const accessCheck = await checkAdminAccess();
+    if (accessCheck) {
+      return NextResponse.json(
+        { error: accessCheck.error },
+        { status: accessCheck.status }
+      );
     }
 
     const json = await request.json();
