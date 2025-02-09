@@ -15,25 +15,47 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Input } from "../../../../components/ui/input";
+import { useState } from "react";
+import { X } from "lucide-react";
+
 const vaccineSchema = z.object({
   name: z.string().min(1, "Name is required"),
   totalDose: z.coerce.number().min(1, "Total doses must be at least 1"),
+  providers: z.array(z.object({
+    name: z.string().min(1, "Provider name is required")
+  }))
 });
 
 type VaccineFormValues = z.infer<typeof vaccineSchema>;
 
 export default function CreateVaccinePage() {
   const router = useRouter();
-
   const { toast } = useToast();
+  const [newProvider, setNewProvider] = useState("");
 
   const form = useForm<VaccineFormValues>({
     resolver: zodResolver(vaccineSchema),
     defaultValues: {
       totalDose: 1,
       name: "",
+      providers: []
     },
   });
+
+  const providers = form.watch("providers") || [];
+
+  const addProvider = () => {
+    if (!newProvider.trim()) return;
+    
+    const currentProviders = form.getValues("providers") || [];
+    form.setValue("providers", [...currentProviders, { name: newProvider.trim() }]);
+    setNewProvider("");
+  };
+
+  const removeProvider = (index: number) => {
+    const currentProviders = form.getValues("providers") || [];
+    form.setValue("providers", currentProviders.filter((_, i) => i !== index));
+  };
 
   const onSubmit = async (data: VaccineFormValues) => {
     try {
@@ -47,7 +69,7 @@ export default function CreateVaccinePage() {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "Failed to update user");
+        throw new Error(error.error || "Failed to create vaccine");
       }
 
       toast({
@@ -76,8 +98,7 @@ export default function CreateVaccinePage() {
               Create Vaccine
             </h3>
             <p className="mt-1 text-sm text-gray-600">
-              Create a new vaccine.
-              unchanged.
+              Create a new vaccine and add its providers.
             </p>
           </div>
         </div>
@@ -94,7 +115,7 @@ export default function CreateVaccinePage() {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Name</FormLabel>
+                            <FormLabel>Name *</FormLabel>
                             <FormControl>
                               <Input {...field} />
                             </FormControl>
@@ -110,15 +131,65 @@ export default function CreateVaccinePage() {
                         name="totalDose"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Total Dose</FormLabel>
+                            <FormLabel>Total Dose *</FormLabel>
                             <FormControl>
-                              <Input {...field} />
+                              <Input type="number" min="1" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Providers *
+                      </label>
+                      <div className="mt-1 flex space-x-2">
+                        <Input
+                          value={newProvider}
+                          onChange={(e) => setNewProvider(e.target.value)}
+                          placeholder="Enter provider name"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addProvider();
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          onClick={addProvider}
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+
+                    {providers.length > 0 && (
+                      <div className="border rounded-md p-4">
+                        <div className="space-y-2">
+                          {providers.map((provider, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between bg-gray-50 p-2 rounded"
+                            >
+                              <span>{provider.name}</span>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeProvider(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -131,7 +202,10 @@ export default function CreateVaccinePage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={form.formState.isSubmitting}>
+                  <Button 
+                    type="submit" 
+                    disabled={form.formState.isSubmitting || providers.length === 0}
+                  >
                     Create Vaccine
                   </Button>
                 </div>

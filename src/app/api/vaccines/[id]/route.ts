@@ -3,13 +3,26 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { z } from "zod";
 
+const vaccineSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  totalDose: z.coerce.number().min(1, "Total doses must be at least 1"),
+  providers: z.array(z.object({
+    id: z.string().optional(),
+    name: z.string().min(1, "Provider name is required")
+  }))
+});
 
-export async function GET(request: Request, { params }: { params: Promise<Record<string, string>> }) {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
     const vaccine = await db.vaccine.findUnique({
       where: {
-        id: id,
+        id: params.id,
+      },
+      include: {
+        providers: true,
       },
     });
 
@@ -30,28 +43,56 @@ export async function GET(request: Request, { params }: { params: Promise<Record
   }
 }
 
-export async function PUT(request: Request, { params }: { params: Promise<Record<string, string>> }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const json = await request.json();
-    const { name, totalDose } = json;
+    const validatedData = vaccineSchema.parse(json);
 
-    const vaccine = await db.vaccine.update({
+    // First, update the vaccine with basic info
+    await db.vaccine.update({
       where: {
-        id: id,
+        id: params.id,
       },
       data: {
-        name,
-        totalDose,
+        name: validatedData.name,
+        totalDose: validatedData.totalDose,
       },
     });
 
-    return NextResponse.json(vaccine);
+    // Delete all existing providers for this vaccine
+    await db.vaccineProvider.deleteMany({
+      where: {
+        vaccineId: params.id,
+      },
+    });
+
+    // Create all providers from the request
+    await db.vaccineProvider.createMany({
+      data: validatedData.providers.map(provider => ({
+        name: provider.name,
+        vaccineId: params.id,
+      })),
+    });
+
+    // Fetch the updated vaccine with providers
+    const finalVaccine = await db.vaccine.findUnique({
+      where: {
+        id: params.id,
+      },
+      include: {
+        providers: true,
+      },
+    });
+
+    return NextResponse.json(finalVaccine);
   } catch (error) {
     console.error("Error updating vaccine:", error);
     if (error instanceof z.ZodError) {
@@ -67,29 +108,20 @@ export async function PUT(request: Request, { params }: { params: Promise<Record
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<Record<string, string>> }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { id } = await params;
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if vaccine is being used in any certificates
-    const vaccineInUse = await db.vaccinationRecord.findFirst({
-      where: { vaccineId: id },
-    });
-
-    if (vaccineInUse) {
-      return NextResponse.json(
-        { error: "Cannot delete vaccine as it is being used in vaccination records" },
-        { status: 400 }
-      );
-    }
-
-    // Delete vaccine
     await db.vaccine.delete({
-      where: { id: id },
+      where: {
+        id: params.id,
+      },
     });
 
     return new NextResponse(null, { status: 204 });
