@@ -147,7 +147,6 @@ export function CreateCertificateForm() {
           name: vaccineName,
         },
       };
-      console.log({ prevData });
       setPreviousCertificateDetails(prevData);
 
       if (!certificateResponse.ok) {
@@ -247,27 +246,53 @@ export function CreateCertificateForm() {
         dateAdministered: new Date(data.dateAdministered).toISOString()
       };
 
-      console.log("Sending formatted data to API:", formattedData);
+      let response;
 
-      const response = await createCertificate(formattedData);
-      console.log("Certificate creation response:", response);
+      // If it's the first dose, create a new certificate
+      if (data.doseNumber === 1) {
+        response = await createCertificate(formattedData);
+      } else {
+        // For subsequent doses, update the existing certificate
+        const updateResponse = await fetch(`/api/certificates/${previousCertificateDetails?.id}/vaccinations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            vaccineId: data.vaccineId,
+            providerId: data.providerId,
+            doseNumber: data.doseNumber,
+            dateAdministered: formattedData.dateAdministered,
+          }),
+        });
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          throw new Error(errorData.error || 'Failed to update certificate');
+        }
+
+        response = await updateResponse.json();
+      }
 
       // Check if response is an error response
       if ('error' in response) {
-        throw new Error(typeof response.error === 'string' ? response.error : 'Failed to create certificate');
+        throw new Error(typeof response.error === 'string' ? response.error : 'Failed to process certificate');
       }
 
       toast({
         title: "Success",
-        description: "Certificate created successfully",
+        description: data.doseNumber === 1 
+          ? "Certificate created successfully" 
+          : "Certificate updated successfully",
       });
+      
       router.push("/dashboard/certificates");
       router.refresh();
     } catch (error) {
-      console.error("Certificate creation error:", error);
+      console.error("Certificate processing error:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create certificate",
+        description: error instanceof Error ? error.message : "Failed to process certificate",
         variant: "destructive",
       });
     }

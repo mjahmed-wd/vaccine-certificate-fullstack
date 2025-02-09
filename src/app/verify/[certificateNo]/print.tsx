@@ -1,6 +1,5 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
 import { format } from "date-fns";
 
 interface Certificate {
@@ -36,7 +35,9 @@ interface VaccinationCertificatePrintProps {
   certificate: Certificate;
 }
 
-export default function VaccinationCertificatePrint({ certificate }: VaccinationCertificatePrintProps) {
+export default function VaccinationCertificatePrint({
+  certificate,
+}: VaccinationCertificatePrintProps) {
   return (
     <div id="certificate-print" className="hidden print:block">
       <div className="p-8">
@@ -57,7 +58,9 @@ export default function VaccinationCertificatePrint({ certificate }: Vaccination
         <div className="grid gap-8 md:grid-cols-2">
           <div className="space-y-8">
             <div>
-              <h2 className="text-lg font-semibold mb-4">Patient Information</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Patient Information
+              </h2>
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
@@ -107,7 +110,9 @@ export default function VaccinationCertificatePrint({ certificate }: Vaccination
 
           <div className="space-y-8">
             <div>
-              <h2 className="text-lg font-semibold mb-4">Vaccination Details</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Vaccination Details
+              </h2>
               <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <dt className="text-sm font-medium text-muted-foreground">
@@ -125,7 +130,9 @@ export default function VaccinationCertificatePrint({ certificate }: Vaccination
             </div>
 
             <div>
-              <h2 className="text-lg font-semibold mb-4">Vaccination History</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Vaccination History
+              </h2>
               <div className="space-y-4">
                 {certificate.vaccinations.map((vaccination) => (
                   <div key={vaccination.id} className="rounded-lg border p-4">
@@ -147,7 +154,10 @@ export default function VaccinationCertificatePrint({ certificate }: Vaccination
                           Date Administered
                         </dt>
                         <dd className="text-sm">
-                          {format(new Date(vaccination.dateAdministered), "PPP")}
+                          {format(
+                            new Date(vaccination.dateAdministered),
+                            "PPP"
+                          )}
                         </dd>
                       </div>
                       <div>
