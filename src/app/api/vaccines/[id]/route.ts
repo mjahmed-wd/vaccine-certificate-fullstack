@@ -6,10 +6,12 @@ import { z } from "zod";
 const vaccineSchema = z.object({
   name: z.string().min(1, "Name is required"),
   totalDose: z.coerce.number().min(1, "Total doses must be at least 1"),
-  providers: z.array(z.object({
-    id: z.string().optional(),
-    name: z.string().min(1, "Provider name is required")
-  }))
+  providers: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1, "Provider name is required"),
+    })
+  ),
 });
 
 async function checkAdminAccess() {
@@ -25,8 +27,9 @@ async function checkAdminAccess() {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
+  const id = (await params).id;
   try {
     const accessCheck = await checkAdminAccess();
     if (accessCheck) {
@@ -38,7 +41,7 @@ export async function GET(
 
     const vaccine = await db.vaccine.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
       include: {
         providers: true,
@@ -46,10 +49,7 @@ export async function GET(
     });
 
     if (!vaccine) {
-      return NextResponse.json(
-        { error: "Vaccine not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Vaccine not found" }, { status: 404 });
     }
 
     return NextResponse.json(vaccine);
@@ -64,9 +64,10 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
   try {
+    const id = (await params).id;
     const accessCheck = await checkAdminAccess();
     if (accessCheck) {
       return NextResponse.json(
@@ -81,7 +82,7 @@ export async function PUT(
     // First, update the vaccine with basic info
     await db.vaccine.update({
       where: {
-        id: params.id,
+        id: id,
       },
       data: {
         name: validatedData.name,
@@ -92,22 +93,22 @@ export async function PUT(
     // Delete all existing providers for this vaccine
     await db.vaccineProvider.deleteMany({
       where: {
-        vaccineId: params.id,
+        vaccineId: id,
       },
     });
 
     // Create all providers from the request
     await db.vaccineProvider.createMany({
-      data: validatedData.providers.map(provider => ({
+      data: validatedData.providers.map((provider) => ({
         name: provider.name,
-        vaccineId: params.id,
+        vaccineId: id,
       })),
     });
 
     // Fetch the updated vaccine with providers
     const finalVaccine = await db.vaccine.findUnique({
       where: {
-        id: params.id,
+        id: id,
       },
       include: {
         providers: true,
@@ -132,9 +133,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
   try {
+    const id = (await params).id;
     const accessCheck = await checkAdminAccess();
     if (accessCheck) {
       return NextResponse.json(
@@ -145,7 +147,7 @@ export async function DELETE(
 
     await db.vaccine.delete({
       where: {
-        id: params.id,
+        id: id,
       },
     });
 
@@ -157,4 +159,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}

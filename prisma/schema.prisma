@@ -30,6 +30,7 @@ model Vaccine {
     certificates      Certificate[]
     VaccinationRecord VaccinationRecord[]
     providers         VaccineProvider[]
+    boosterDoses      BoosterDose[]
 }
 
 model VaccineProvider {
@@ -40,6 +41,7 @@ model VaccineProvider {
     updatedAt         DateTime            @updatedAt
     vaccine           Vaccine             @relation(fields: [vaccineId], references: [id])
     vaccinationRecords VaccinationRecord[]
+    boosterDoses      BoosterDose[]
 
     @@index([vaccineId])
 }
@@ -66,6 +68,7 @@ model Certificate {
     vaccine          Vaccine  @relation(fields: [vaccineId], references: [id])
 
     vaccinations VaccinationRecord[]
+    boosterDoses BoosterDose[]
 
     @@index([certificateNo])
     @@index([nidNumber])
@@ -78,6 +81,28 @@ model VaccinationRecord {
     vaccineId         String
     vaccineName       String
     doseNumber        Int
+    dateAdministered  DateTime
+    vaccinationCenter String
+    vaccinatedById    String
+    vaccinatedByName  String
+    providerId        String
+    provider          VaccineProvider @relation(fields: [providerId], references: [id])
+    createdAt         DateTime @default(now())
+    updatedAt         DateTime @updatedAt
+
+    certificate Certificate @relation(fields: [certificateId], references: [id])
+    vaccine     Vaccine     @relation(fields: [vaccineId], references: [id])
+
+    @@index([certificateId])
+    @@index([vaccineId])
+    @@index([vaccinatedById])
+    @@index([providerId])
+}
+
+model BoosterDose {
+    id                String   @id @default(uuid())
+    certificateId     String
+    vaccineId         String
     dateAdministered  DateTime
     vaccinationCenter String
     vaccinatedById    String

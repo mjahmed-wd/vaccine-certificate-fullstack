@@ -55,6 +55,7 @@ const formSchema = z.object({
     })
     .optional(),
   dateAdministered: z.string().min(1, "Date administered is required"),
+  isBoosterDose: z.boolean().default(false)
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -75,6 +76,19 @@ interface PreviousCertificateDetails extends Certificate {
       name: string;
     };
   }>;
+  boosterDoses: Array<{
+    id: string;
+    vaccineId: string;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedByName: string;
+    provider: {
+      name: string;
+    };
+    vaccine: {
+      name: string;
+    };
+  }>;
 }
 
 export function CreateCertificateForm() {
@@ -87,6 +101,7 @@ export function CreateCertificateForm() {
     useState<PreviousCertificateDetails | null>(null);
   const [isValidatingCertificate, setIsValidatingCertificate] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isAllDosesCompleted, setIsAllDosesCompleted] = useState(false);
 
   useEffect(() => {
     const fetchVaccines = async () => {
@@ -123,6 +138,7 @@ export function CreateCertificateForm() {
       doseNumber: 1,
       previousCertificateNo: "",
       dateAdministered: new Date().toISOString().split("T")[0],
+      isBoosterDose: false
     },
   });
 
@@ -151,6 +167,7 @@ export function CreateCertificateForm() {
     setIsValidatingCertificate(true);
     setValidationError(null);
     setPreviousCertificateDetails(null);
+    setIsAllDosesCompleted(false);
 
     try {
       const certificateResponse = await fetch(
@@ -182,6 +199,15 @@ export function CreateCertificateForm() {
         return;
       }
 
+      // Check if all required doses are completed
+      const allDosesCompleted = certificateData.vaccinations.length >= certificateData.doseNumber;
+      setIsAllDosesCompleted(allDosesCompleted);
+
+      // If not all doses are completed, disable booster dose option
+      if (!allDosesCompleted) {
+        form.setValue("isBoosterDose", false);
+      }
+
       // Set form values and store certificate details
       form.setValue("patientName", certificateData.patientName);
       form.setValue("fatherName", certificateData.fatherName || "");
@@ -196,9 +222,16 @@ export function CreateCertificateForm() {
         new Date(certificateData.dateOfBirth).toISOString().split("T")[0]
       );
       form.setValue("gender", certificateData.gender);
-      // Set the next dose number based on the previous certificate's vaccination history
-      const nextDoseNumber = certificateData.vaccinations.length + 1;
-      form.setValue("doseNumber", nextDoseNumber);
+      
+      // Set the next dose number based on whether all doses are completed
+      if (allDosesCompleted) {
+        // If all doses are completed, don't increment the dose number
+        form.setValue("doseNumber", certificateData.doseNumber);
+      } else {
+        // If doses are not completed, set next dose number
+        const nextDoseNumber = certificateData.vaccinations.length + 1;
+        form.setValue("doseNumber", nextDoseNumber);
+      }
       setValidationError(null);
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -268,8 +301,8 @@ export function CreateCertificateForm() {
         return;
       }
 
-      // Validate dose number against vaccine total dose
-      if (selectedVaccine && data.doseNumber > selectedVaccine.totalDose) {
+      // Validate dose number against vaccine total dose only if it's not a booster dose
+      if (selectedVaccine && !data.isBoosterDose && data.doseNumber > selectedVaccine.totalDose) {
         toast({
           title: "Error",
           description: `Dose number cannot be greater than ${selectedVaccine.totalDose} for ${selectedVaccine.name}`,
@@ -297,11 +330,31 @@ export function CreateCertificateForm() {
 
       let response;
 
-      // If it's the first dose, create a new certificate
-      if (data.doseNumber === 1) {
+      if (data.isBoosterDose && data.previousCertificateNo) {
+        // Add booster dose to existing certificate
+        const updateResponse = await fetch(`/api/certificates/${previousCertificateDetails?.id}/booster`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            vaccineId: data.vaccineId,
+            providerId: data.providerId,
+            dateAdministered: formattedData.dateAdministered,
+          }),
+        });
+
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.json();
+          throw new Error(errorData.error || 'Failed to add booster dose');
+        }
+
+        response = await updateResponse.json();
+      } else if (data.doseNumber === 1) {
+        // Create new certificate
         response = await createCertificate(formattedData);
       } else {
-        // For subsequent doses, update the existing certificate
+        // Add subsequent dose to existing certificate
         const updateResponse = await fetch(`/api/certificates/${previousCertificateDetails?.id}/vaccinations`, {
           method: 'POST',
           headers: {
@@ -422,41 +475,73 @@ export function CreateCertificateForm() {
             />
           )}
 
-          <FormField
-            control={form.control}
-            name="doseNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Is this a subsequent dose?</FormLabel>
-                <FormControl>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
-                      checked={field.value > 1}
-                      onChange={(e) => {
-                        field.onChange(e.target.checked ? 2 : 1);
-                        if (!e.target.checked) {
-                          form.setValue("previousCertificateNo", "");
-                          setPreviousCertificateDetails(null);
-                          setValidationError(null);
-                        }
-                      }}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      This is not the first dose
-                    </span>
-                  </div>
-                </FormControl>
-                {selectedVaccine && (
-                  <p className="text-xs text-muted-foreground">
-                    Total doses required: {selectedVaccine.totalDose}
-                  </p>
+          <div className="space-y-4">
+            <FormField
+              control={form.control}
+              name="doseNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Is this a subsequent dose?</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300"
+                        checked={field.value > 1}
+                        onChange={(e) => {
+                          field.onChange(e.target.checked ? 2 : 1);
+                          if (!e.target.checked) {
+                            form.setValue("previousCertificateNo", "");
+                            form.setValue("isBoosterDose", false);
+                            setPreviousCertificateDetails(null);
+                            setValidationError(null);
+                            setIsAllDosesCompleted(false);
+                          }
+                        }}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        This is not the first dose
+                      </span>
+                    </div>
+                  </FormControl>
+                  {selectedVaccine && (
+                    <p className="text-xs text-muted-foreground">
+                      Total doses required: {selectedVaccine.totalDose}
+                    </p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {isAllDosesCompleted && form.watch("doseNumber") > 1 && (
+              <FormField
+                control={form.control}
+                name="isBoosterDose"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Is this a booster dose?</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-gray-300"
+                          checked={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                          }}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          This is a booster dose
+                        </span>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-                <FormMessage />
-              </FormItem>
+              />
             )}
-          />
+          </div>
 
           {form.watch("doseNumber") > 1 && (
             <div className="col-span-2 space-y-4">
@@ -529,27 +614,27 @@ export function CreateCertificateForm() {
                           Doses Received
                         </p>
                         <p className="font-medium">
-                          {previousCertificateDetails.doseNumber} of {selectedVaccine?.totalDose}
+                          {previousCertificateDetails.vaccinations.length} of {selectedVaccine?.totalDose}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Remaining Doses
+                          Booster Doses
                         </p>
                         <p className="font-medium">
-                          {selectedVaccine ? 
-                            selectedVaccine.totalDose - previousCertificateDetails.doseNumber : 
-                            "N/A"}
+                          {previousCertificateDetails.boosterDoses?.length || 0}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Next Dose Number
-                        </p>
-                        <p className="font-medium">
-                          {previousCertificateDetails.doseNumber + 1}
-                        </p>
-                      </div>
+                      {!isAllDosesCompleted && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">
+                            Next Dose Number
+                          </p>
+                          <p className="font-medium">
+                            {previousCertificateDetails.vaccinations.length + 1}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -606,6 +691,56 @@ export function CreateCertificateForm() {
                           </dl>
                         </div>
                       ))}
+
+                      {previousCertificateDetails.boosterDoses?.length > 0 && (
+                        <>
+                          <h4 className="text-md font-semibold mt-6 mb-4">
+                            Booster Doses
+                          </h4>
+                          {previousCertificateDetails.boosterDoses.map((booster) => (
+                            <div key={booster.id} className="p-4 border rounded-lg bg-muted">
+                              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <div>
+                                  <dt className="text-sm font-medium text-muted-foreground">
+                                    Vaccine
+                                  </dt>
+                                  <dd className="text-sm">{booster.vaccine.name}</dd>
+                                </div>
+                                <div>
+                                  <dt className="text-sm font-medium text-muted-foreground">
+                                    Provider
+                                  </dt>
+                                  <dd className="text-sm">{booster.provider.name}</dd>
+                                </div>
+                                <div>
+                                  <dt className="text-sm font-medium text-muted-foreground">
+                                    Date Administered
+                                  </dt>
+                                  <dd className="text-sm">
+                                    {new Date(booster.dateAdministered).toLocaleDateString()}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-sm font-medium text-muted-foreground">
+                                    Vaccination Center
+                                  </dt>
+                                  <dd className="text-sm">
+                                    {booster.vaccinationCenter}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-sm font-medium text-muted-foreground">
+                                    Vaccinated By
+                                  </dt>
+                                  <dd className="text-sm">
+                                    {booster.vaccinatedByName}
+                                  </dd>
+                                </div>
+                              </dl>
+                            </div>
+                          ))}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

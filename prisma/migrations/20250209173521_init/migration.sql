@@ -89,6 +89,26 @@ CREATE TABLE `VaccinationRecord` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `BoosterDose` (
+    `id` VARCHAR(191) NOT NULL,
+    `certificateId` VARCHAR(191) NOT NULL,
+    `vaccineId` VARCHAR(191) NOT NULL,
+    `dateAdministered` DATETIME(3) NOT NULL,
+    `vaccinationCenter` VARCHAR(191) NOT NULL,
+    `vaccinatedById` VARCHAR(191) NOT NULL,
+    `vaccinatedByName` VARCHAR(191) NOT NULL,
+    `providerId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `BoosterDose_certificateId_idx`(`certificateId`),
+    INDEX `BoosterDose_vaccineId_idx`(`vaccineId`),
+    INDEX `BoosterDose_vaccinatedById_idx`(`vaccinatedById`),
+    INDEX `BoosterDose_providerId_idx`(`providerId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `VaccineProvider` ADD CONSTRAINT `VaccineProvider_vaccineId_fkey` FOREIGN KEY (`vaccineId`) REFERENCES `Vaccine`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -103,3 +123,12 @@ ALTER TABLE `VaccinationRecord` ADD CONSTRAINT `VaccinationRecord_certificateId_
 
 -- AddForeignKey
 ALTER TABLE `VaccinationRecord` ADD CONSTRAINT `VaccinationRecord_vaccineId_fkey` FOREIGN KEY (`vaccineId`) REFERENCES `Vaccine`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `BoosterDose` ADD CONSTRAINT `BoosterDose_providerId_fkey` FOREIGN KEY (`providerId`) REFERENCES `VaccineProvider`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `BoosterDose` ADD CONSTRAINT `BoosterDose_certificateId_fkey` FOREIGN KEY (`certificateId`) REFERENCES `Certificate`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `BoosterDose` ADD CONSTRAINT `BoosterDose_vaccineId_fkey` FOREIGN KEY (`vaccineId`) REFERENCES `Vaccine`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

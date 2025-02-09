@@ -1,116 +1,140 @@
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-async function setup() {
-  try {
-    // Hash password with bcrypt
-    const password = "admin123";
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create Admin User
-    const admin = await prisma.user.create({
-      data: {
-        firstName: "Admin",
-        lastName: "User",
-        fatherName: "Admin Father",
-        motherName: "Admin Mother",
-        username: "admin",
-        role: "ADMIN",
-        center: "Main Center",
-        phone: "01700000000",
-        phoneNumber: "01700000001",
-        permanentAddress: "123 Admin Street, City",
-        passwordHash: hashedPassword,
-      },
-    });
-
-    // Create Technician User
-    await prisma.user.create({
-      data: {
-        firstName: "Tech",
-        lastName: "User",
-        fatherName: "Tech Father",
-        motherName: "Tech Mother",
-        username: "tech",
-        role: "TECHNICIAN",
-        center: "Branch Center",
-        phone: "01700000002",
-        phoneNumber: "01700000003",
-        permanentAddress: "456 Tech Street, City",
-        passwordHash: hashedPassword,
-      },
-    });
-
-    // Create Vaccines with Providers
-    const vaccine1 = await prisma.vaccine.create({
-      data: {
-        name: "COVID-19 Vaccine",
-        totalDose: 2,
-        providers: {
-          create: [
-            { name: "Pfizer" },
-            { name: "Moderna" },
-            { name: "AstraZeneca" },
-          ],
-        },
-      },
-      include: {
-        providers: true
-      }
-    });
-
-    await prisma.vaccine.create({
-      data: {
-        name: "Flu Vaccine",
-        totalDose: 1,
-        providers: {
-          create: [{ name: "GSK" }, { name: "Sanofi" }],
-        },
-      },
-    });
-
-    // Create Sample Certificates
-    await prisma.certificate.create({
-      data: {
-        nidNumber: "1234567890",
-        nationality: "Bangladeshi",
-        patientName: "John Doe",
-        dateOfBirth: new Date("1990-01-01"),
-        gender: "MALE",
-        vaccineId: vaccine1.id,
-        doseNumber: 1,
-        dateAdministered: new Date(),
-        vaccinations: {
-          create: {
-            vaccineId: vaccine1.id,
-            vaccineName: vaccine1.name,
-            doseNumber: 1,
-            dateAdministered: new Date(),
-            vaccinationCenter: "Main Center",
-            vaccinatedById: admin.id,
-            vaccinatedByName: `${admin.firstName} ${admin.lastName}`,
-            providerId: vaccine1.providers[0].id,
-          },
-        },
-      },
-    });
-
-    console.log("Setup completed successfully!");
-    console.log("Admin credentials:");
-    console.log("Username: admin");
-    console.log("Password: admin123");
-    console.log("\nTechnician credentials:");
-    console.log("Username: tech");
-    console.log("Password: admin123");
-  } catch (error) {
-    console.error("Setup failed:", error);
-    process.exit(1);
-  } finally {
-    await prisma.$disconnect();
-  }
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10)
+    return bcrypt.hash(password, salt)
 }
 
-setup(); 
+async function main() {
+    // Clear existing data
+    await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 0;`
+    await prisma.$executeRaw`TRUNCATE TABLE BoosterDose;`
+    await prisma.$executeRaw`TRUNCATE TABLE VaccinationRecord;`
+    await prisma.$executeRaw`TRUNCATE TABLE Certificate;`
+    await prisma.$executeRaw`TRUNCATE TABLE VaccineProvider;`
+    await prisma.$executeRaw`TRUNCATE TABLE Vaccine;`
+    await prisma.$executeRaw`TRUNCATE TABLE User;`
+    await prisma.$executeRaw`SET FOREIGN_KEY_CHECKS = 1;`
+
+    // Create admin user
+    const adminUser = await prisma.user.create({
+        data: {
+            firstName: 'Admin',
+            lastName: 'User',
+            username: 'admin',
+            passwordHash: await hashPassword('admin123'),
+            role: 'ADMIN',
+            center: 'Main Center',
+            phone: '1234567890'
+        }
+    })
+
+    // Create technician user
+    await prisma.user.create({
+        data: {
+            firstName: 'Tech',
+            lastName: 'User',
+            username: 'tech',
+            passwordHash: await hashPassword('tech123'),
+            role: 'TECHNICIAN',
+            center: 'Branch Center',
+            phone: '0987654321'
+        }
+    })
+
+    // Create vaccines
+    const covidVaccine = await prisma.vaccine.create({
+        data: {
+            name: 'COVID-19 Vaccine',
+            totalDose: 2,
+            providers: {
+                create: [
+                    { name: 'Pfizer' },
+                    { name: 'Moderna' }
+                ]
+            }
+        }
+    })
+
+    await prisma.vaccine.create({
+        data: {
+            name: 'Influenza Vaccine',
+            totalDose: 1,
+            providers: {
+                create: [
+                    { name: 'GSK' },
+                    { name: 'Sanofi' }
+                ]
+            }
+        }
+    })
+
+    // Create a sample certificate with vaccination record and booster
+    await prisma.certificate.create({
+        data: {
+            nidNumber: '1234567890',
+            nationality: 'Bangladesh',
+            patientName: 'John Doe',
+            fatherName: 'James Doe',
+            motherName: 'Jane Doe',
+            permanentAddress: '123 Main St, Dhaka',
+            phoneNumber: '01712345678',
+            dateOfBirth: new Date('1990-01-01'),
+            gender: 'MALE',
+            vaccineId: covidVaccine.id,
+            doseNumber: 2,
+            dateAdministered: new Date('2023-01-01'),
+            vaccinations: {
+                create: [
+                    {
+                        vaccineId: covidVaccine.id,
+                        vaccineName: 'COVID-19 Vaccine',
+                        doseNumber: 1,
+                        dateAdministered: new Date('2023-01-01'),
+                        vaccinationCenter: 'Main Center',
+                        vaccinatedById: adminUser.id,
+                        vaccinatedByName: 'Admin User',
+                        providerId: (await prisma.vaccineProvider.findFirst({ where: { name: 'Pfizer' } })).id
+                    },
+                    {
+                        vaccineId: covidVaccine.id,
+                        vaccineName: 'COVID-19 Vaccine',
+                        doseNumber: 2,
+                        dateAdministered: new Date('2023-02-01'),
+                        vaccinationCenter: 'Main Center',
+                        vaccinatedById: adminUser.id,
+                        vaccinatedByName: 'Admin User',
+                        providerId: (await prisma.vaccineProvider.findFirst({ where: { name: 'Pfizer' } })).id
+                    }
+                ]
+            },
+            boosterDoses: {
+                create: [
+                    {
+                        vaccineId: covidVaccine.id,
+                        dateAdministered: new Date('2023-06-01'),
+                        vaccinationCenter: 'Main Center',
+                        vaccinatedById: adminUser.id,
+                        vaccinatedByName: 'Admin User',
+                        providerId: (await prisma.vaccineProvider.findFirst({ where: { name: 'Moderna' } })).id
+                    }
+                ]
+            }
+        }
+    })
+
+    console.log('Database has been seeded!')
+}
+
+main()
+    .catch((e) => {
+        console.error(e)
+        process.exit(1)
+    })
+    .finally(async () => {
+        await prisma.$disconnect()
+    })
+

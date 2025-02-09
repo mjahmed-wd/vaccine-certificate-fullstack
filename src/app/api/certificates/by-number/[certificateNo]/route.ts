@@ -31,6 +31,12 @@ export async function GET(
             provider: true,
           },
         },
+        boosterDoses: {
+          include: {
+            provider: true,
+            vaccine: true,
+          },
+        },
       },
     });
 
