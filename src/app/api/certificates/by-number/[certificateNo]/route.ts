@@ -4,16 +4,16 @@ import { auth } from "@/lib/auth";
 
 export async function GET(
   request: Request,
-  { params }: { params: { certificateNo: string } }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
+  const { certificateNo } = await params;
   try {
     const session = await auth();
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const certificateNo = parseInt(params.certificateNo, 10);
-    if (isNaN(certificateNo)) {
+    if (isNaN(parseInt(certificateNo, 10))) {
       return NextResponse.json(
         { error: "Invalid certificate number" },
         { status: 400 }
@@ -22,7 +22,7 @@ export async function GET(
 
     const certificate = await db.certificate.findUnique({
       where: {
-        certificateNo: certificateNo,
+        certificateNo: parseInt(certificateNo, 10),
       },
       include: {
         vaccine: true,
