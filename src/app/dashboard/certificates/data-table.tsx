@@ -23,8 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Download } from "lucide-react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Certificate } from "./columns";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends Certificate, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageCount: number;
@@ -32,9 +36,15 @@ interface DataTableProps<TData, TValue> {
   currentPage: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (newPageSize: number) => void;
+  filterInfo?: {
+    searchField?: string;
+    searchQuery?: string;
+    fromDate?: string;
+    toDate?: string;
+  };
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends Certificate, TValue>({
   columns,
   data,
   pageCount,
@@ -42,6 +52,7 @@ export function DataTable<TData, TValue>({
   currentPage,
   onPageChange,
   onPageSizeChange,
+  filterInfo,
 }: DataTableProps<TData, TValue>) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -64,6 +75,165 @@ export function DataTable<TData, TValue>({
     manualPagination: true,
     pageCount: pageCount,
   });
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    let yPos = 15;
+
+    // Add hospital logo and header
+    doc.addImage("/popular-logo.png", "PNG", 14, yPos, 15, 15);
+
+    // Hospital name in large, bold text
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(
+      "POPULAR MEDICAL CENTRE & HOSPITAL",
+      doc.internal.pageSize.width / 2,
+      yPos + 10,
+      { align: "center" }
+    );
+
+    // Address and contact in smaller text
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    yPos += 15;
+    doc.text(
+      "Nayasarak Road, Sylhet, Bangladesh",
+      doc.internal.pageSize.width / 2,
+      yPos + 5,
+      { align: "center" }
+    );
+    doc.text(
+      "Phone: +880 821-725227",
+      doc.internal.pageSize.width / 2,
+      yPos + 10,
+      { align: "center" }
+    );
+    doc.text(
+      "Email: popularmedicalcentre@gmail.com",
+      doc.internal.pageSize.width / 2,
+      yPos + 15,
+      { align: "center" }
+    );
+
+    yPos += 25;
+
+    // Report title
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      "Vaccination Certificates Report",
+      doc.internal.pageSize.width / 2,
+      yPos,
+      { align: "center" }
+    );
+    yPos += 5;
+
+    // Add a line separator after the report title
+    doc.setLineWidth(0.5);
+    doc.line(14, yPos + 3, doc.internal.pageSize.width - 14, yPos + 3);
+    yPos += 13;
+
+    // Generation timestamp
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, yPos);
+    yPos += 10;
+
+    // Add filter information if any
+    if (filterInfo) {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+
+      // Add a "Filters Applied:" header if any filters are active
+      if (filterInfo.searchQuery || filterInfo.fromDate || filterInfo.toDate) {
+        doc.setFont("helvetica", "bold");
+        doc.text("Filters Applied:", 14, yPos);
+        yPos += 5;
+        doc.setFont("helvetica", "normal");
+      }
+
+      // Show search information
+      if (filterInfo.searchQuery) {
+        const searchFieldMap: Record<string, string> = {
+          certificateNo: "Certificate Number",
+          patientName: "Patient Name",
+          nidNumber: "NID Number",
+          passportNumber: "Passport Number",
+        };
+        const fieldName =
+          searchFieldMap[filterInfo.searchField || ""] ||
+          filterInfo.searchField;
+        doc.text(
+          `Search: ${fieldName} = "${filterInfo.searchQuery}"`,
+          14,
+          yPos
+        );
+        yPos += 5;
+      }
+
+      // Show date range information
+      if (filterInfo.fromDate || filterInfo.toDate) {
+        const fromDate = filterInfo.fromDate
+          ? new Date(filterInfo.fromDate).toLocaleDateString()
+          : "Any";
+        const toDate = filterInfo.toDate
+          ? new Date(filterInfo.toDate).toLocaleDateString()
+          : "Any";
+        doc.text(`Date Range: From ${fromDate} to ${toDate}`, 14, yPos);
+        yPos += 5;
+      }
+
+      // Add pagination information
+      doc.text(
+        `Page ${currentPage} of ${pageCount} (${data.length} items per page)`,
+        14,
+        yPos
+      );
+      yPos += 5;
+
+      doc.setTextColor(0, 0, 0);
+    }
+    yPos += 5;
+
+    // Prepare the data for PDF
+    const headers = [
+      "Certificate No",
+      "Patient Name",
+      "NID Number",
+      "Passport Number",
+      "Nationality",
+      "Vaccine",
+      "Dose Taken",
+      "Booster Doses",
+      "Date Administered",
+    ];
+
+    const rows = data.map((item: Certificate) => [
+      item.certificateNo,
+      item.patientName,
+      item.nidNumber || "-",
+      item.passportNumber || "-",
+      item.nationality,
+      item.vaccine?.name || "-",
+      `${item.vaccinations?.length || 0} / ${item.vaccine?.totalDose || 0}`,
+      item.boosterDoses?.length || 0,
+      new Date(item.dateAdministered).toLocaleDateString(),
+    ]);
+
+    // Generate the table
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: yPos,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [0, 124, 2] }, // Using the green color from your theme
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+    });
+
+    // Save the PDF
+    doc.save("vaccination-certificates.pdf");
+  };
 
   // Return loading state or null while client-side hydration is happening
   if (!isMounted) return null;
@@ -155,6 +325,18 @@ export function DataTable<TData, TValue>({
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleDownloadPDF}
+            variant="outline"
+            size="icon"
+            className="h-9 w-9 hover:bg-[#007C02] hover:text-white transition-colors"
+            title="Download PDF"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+          Download PDF
         </div>
         <div className="flex items-center space-x-2">
           <Button

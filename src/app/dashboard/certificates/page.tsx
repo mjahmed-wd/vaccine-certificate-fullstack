@@ -271,6 +271,12 @@ export default function CertificatesPage() {
             currentPage={currentPage}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
+            filterInfo={{
+              searchField,
+              searchQuery,
+              fromDate,
+              toDate
+            }}
           />
         )}
       </div>
