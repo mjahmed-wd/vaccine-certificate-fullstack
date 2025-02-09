@@ -1,15 +1,15 @@
-import { Metadata } from "next"
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { getCertificate } from "@/lib/api/certificates"
-import { format } from "date-fns"
-import QRCode from "react-qr-code"
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { CertificateWithDetails, getCertificate } from "@/lib/api/certificates";
+import { format } from "date-fns";
+import QRCode from "react-qr-code";
 
 export const metadata: Metadata = {
   title: "View Certificate",
   description: "View vaccination certificate details",
-}
+};
 
 interface ViewCertificatePageProps {
   params: Promise<Record<string, string>>;
@@ -20,13 +20,15 @@ export default async function ViewCertificatePage({
 }: ViewCertificatePageProps) {
   // Await params before using
   const { id } = await params;
-  const certificate = await getCertificate(id).catch(() => null)
+  const certificate = await getCertificate(id).catch(() => null);
 
   if (!certificate) {
-    notFound()
+    notFound();
   }
 
-  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${certificate.certificateNo}`
+  console.log(certificate);
+
+  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${certificate.certificateNo}`;
 
   return (
     <div className="container mx-auto py-10">
@@ -113,7 +115,8 @@ export default async function ViewCertificatePage({
                   Provider
                 </dt>
                 <dd className="text-sm">
-                  {certificate.vaccinations[certificate.vaccinations.length - 1]?.provider?.name || "N/A"}
+                  {certificate.vaccinations[certificate.vaccinations.length - 1]
+                    ?.provider?.name || "N/A"}
                 </dd>
               </div>
               <div>
@@ -145,51 +148,10 @@ export default async function ViewCertificatePage({
             <h2 className="text-lg font-semibold">Vaccination History</h2>
             <div className="space-y-4">
               {certificate.vaccinations.map((vaccination) => (
-                <div
+                <VaccinationRecordSection
                   key={vaccination.id}
-                  className="rounded-lg border p-4"
-                >
-                  <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Vaccine
-                      </dt>
-                      <dd className="text-sm">{vaccination.vaccineName}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Provider
-                      </dt>
-                      <dd className="text-sm">{vaccination.provider?.name || "N/A"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Dose Number
-                      </dt>
-                      <dd className="text-sm">{vaccination.doseNumber}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Date Administered
-                      </dt>
-                      <dd className="text-sm">
-                        {format(new Date(vaccination.dateAdministered), "PPP")}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Vaccination Center
-                      </dt>
-                      <dd className="text-sm">{vaccination.vaccinationCenter}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-sm font-medium text-muted-foreground">
-                        Vaccinated By
-                      </dt>
-                      <dd className="text-sm">{vaccination.vaccinatedByName}</dd>
-                    </div>
-                  </dl>
-                </div>
+                  vaccination={vaccination}
+                />
               ))}
             </div>
           </div>
@@ -208,5 +170,56 @@ export default async function ViewCertificatePage({
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
+
+const VaccinationRecordSection = ({
+  vaccination,
+}: {
+  vaccination: CertificateWithDetails["vaccinations"][number];
+}) => {
+  console.log(vaccination);
+
+  return (
+    <div className="rounded-lg border p-4">
+      <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">Vaccine</dt>
+          <dd className="text-sm">{vaccination.vaccineName}</dd>
+        </div>
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">
+            Provider
+          </dt>
+          <dd className="text-sm">{vaccination.provider.name}</dd>
+        </div>
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">
+            Dose Number
+          </dt>
+          <dd className="text-sm">{vaccination.doseNumber}</dd>
+        </div>
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">
+            Date Administered
+          </dt>
+          <dd className="text-sm">
+            {format(new Date(vaccination.dateAdministered), "PPP")}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">
+            Vaccination Center
+          </dt>
+          <dd className="text-sm">{vaccination.vaccinationCenter}</dd>
+        </div>
+        <div>
+          <dt className="text-sm font-medium text-muted-foreground">
+            Vaccinated By
+          </dt>
+          <dd className="text-sm">{vaccination.vaccinatedByName}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+};

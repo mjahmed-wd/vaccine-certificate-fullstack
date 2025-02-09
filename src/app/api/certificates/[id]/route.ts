@@ -30,6 +30,13 @@ export async function GET(
             vaccinationCenter: true,
             vaccinatedById: true,
             vaccinatedByName: true,
+            providerId: true,
+            provider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
           orderBy: {
             doseNumber: "asc",
