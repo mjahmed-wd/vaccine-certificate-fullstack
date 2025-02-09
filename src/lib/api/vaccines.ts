@@ -1,41 +1,44 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "https://vaccine.popularsylhet.com";
 
 export interface Vaccine {
-  id: string
-  name: string
-  totalDose: number
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  totalDose: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export async function getVaccines(): Promise<Vaccine[]> {
-  const response = await fetch(`${API_BASE_URL}/api/vaccines`)
+  const response = await fetch(`${API_BASE_URL}/api/vaccines`);
   if (!response.ok) {
-    throw new Error("Failed to fetch vaccines")
+    throw new Error("Failed to fetch vaccines");
   }
-  return response.json()
+  return response.json();
 }
 
 export async function getVaccine(id: string): Promise<Vaccine> {
-  const response = await fetch(`${API_BASE_URL}/api/vaccines/${id}`)
+  const response = await fetch(`${API_BASE_URL}/api/vaccines/${id}`);
   if (!response.ok) {
-    throw new Error("Failed to fetch vaccine")
+    throw new Error("Failed to fetch vaccine");
   }
-  return response.json()
+  return response.json();
 }
 
-export async function createVaccine(data: Pick<Vaccine, "name" | "totalDose">): Promise<Vaccine> {
+export async function createVaccine(
+  data: Pick<Vaccine, "name" | "totalDose">
+): Promise<Vaccine> {
   const response = await fetch(`${API_BASE_URL}/api/vaccines`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to create vaccine")
+    throw new Error("Failed to create vaccine");
   }
-  return response.json()
+  return response.json();
 }
 
 export async function updateVaccine(
@@ -48,19 +51,19 @@ export async function updateVaccine(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to update vaccine")
+    throw new Error("Failed to update vaccine");
   }
-  return response.json()
+  return response.json();
 }
 
 export async function deleteVaccine(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/vaccines/${id}`, {
     method: "DELETE",
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to delete vaccine")
+    throw new Error("Failed to delete vaccine");
   }
 }
 
@@ -70,4 +73,4 @@ export const getVaccineById = async (id: string) => {
     throw new Error("Failed to fetch vaccine details");
   }
   return await response.json();
-}; 
+};

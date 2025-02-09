@@ -1,7 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
-import { db } from "@/lib/db";
 import VaccinationCertificatePrint from "./print";
 import PrintButton from "./print-button";
 import DownloadButton from "./download-button";
@@ -12,45 +11,63 @@ export const metadata: Metadata = {
 };
 
 interface VerifyCertificatePageProps {
-  params: Promise<Record<string, string>>;
+  params: Promise<{
+    certificateNo: string;
+  }>;
+}
+
+interface Certificate {
+  id: string;
+  certificateNo: number;
+  patientName: string;
+  nidNumber?: string | null;
+  passportNumber?: string | null;
+  nationality: string;
+  dateOfBirth: string;
+  gender: string;
+  vaccineId: string;
+  doseNumber: number;
+  dateAdministered: string;
+  isActive: boolean;
+  vaccine: {
+    id: string;
+    name: string;
+    totalDose: number;
+  };
+  vaccinations: Array<{
+    id: string;
+    vaccineId: string;
+    vaccineName: string;
+    doseNumber: number;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedByName: string;
+  }>;
+}
+
+async function getCertificate(certificateNo: string): Promise<Certificate | null> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/verify/${certificateNo}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
 }
 
 export default async function VerifyCertificatePage({
   params,
 }: VerifyCertificatePageProps) {
-  // Await params before using
   const { certificateNo } = await params;
-
-  const certificate = await db.certificate
-    .findUnique({
-      where: {
-        certificateNo: parseInt(certificateNo),
-      },
-      include: {
-        vaccine: {
-          select: {
-            id: true,
-            name: true,
-            totalDose: true,
-          },
-        },
-        vaccinations: {
-          select: {
-            id: true,
-            vaccineId: true,
-            vaccineName: true,
-            doseNumber: true,
-            dateAdministered: true,
-            vaccinationCenter: true,
-            vaccinatedByName: true,
-          },
-          orderBy: {
-            doseNumber: "asc",
-          },
-        },
-      },
-    })
-    .catch(() => null);
+  const certificate = await getCertificate(certificateNo);
 
   if (!certificate) {
     notFound();
@@ -78,41 +95,14 @@ export default async function VerifyCertificatePage({
             </div>
           </div>
 
-          {/* Print Button */}
-          <PrintButton />
-          {/* Download Button */}
-          <DownloadButton />
-
-          <div className="mx-auto max-w-2xl">
+          <div className="grid gap-8 md:grid-cols-2">
             <div className="space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Patient Information</h2>
+              <div>
+                <h2 className="text-lg font-semibold mb-4">Patient Information</h2>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Patient Name
-                    </dt>
+                    <dt className="text-sm font-medium text-muted-foreground">Name</dt>
                     <dd className="text-sm">{certificate.patientName}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Date of Birth
-                    </dt>
-                    <dd className="text-sm">
-                      {format(new Date(certificate.dateOfBirth), "PPP")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Gender
-                    </dt>
-                    <dd className="text-sm">{certificate.gender}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Nationality
-                    </dt>
-                    <dd className="text-sm">{certificate.nationality}</dd>
                   </div>
                   {certificate.nidNumber && (
                     <div>
@@ -130,13 +120,33 @@ export default async function VerifyCertificatePage({
                       <dd className="text-sm">{certificate.passportNumber}</dd>
                     </div>
                   )}
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Nationality
+                    </dt>
+                    <dd className="text-sm">{certificate.nationality}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Date of Birth
+                    </dt>
+                    <dd className="text-sm">
+                      {format(new Date(certificate.dateOfBirth), "PPP")}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-sm font-medium text-muted-foreground">
+                      Gender
+                    </dt>
+                    <dd className="text-sm">{certificate.gender}</dd>
+                  </div>
                 </dl>
               </div>
+            </div>
 
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">
-                  Current Vaccination Status
-                </h2>
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-semibold mb-4">Vaccination Details</h2>
                 <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
@@ -146,42 +156,21 @@ export default async function VerifyCertificatePage({
                   </div>
                   <div>
                     <dt className="text-sm font-medium text-muted-foreground">
-                      Total Doses Received
+                      Total Doses Required
                     </dt>
-                    <dd className="text-sm">{certificate.doseNumber}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Last Dose Date
-                    </dt>
-                    <dd className="text-sm">
-                      {format(new Date(certificate.dateAdministered), "PPP")}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Certificate Status
-                    </dt>
-                    <dd className="text-sm">
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          certificate.isActive
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {certificate.isActive ? "Active" : "Inactive"}
-                      </span>
-                    </dd>
+                    <dd className="text-sm">{certificate.vaccine.totalDose}</dd>
                   </div>
                 </dl>
               </div>
 
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Vaccination History</h2>
+              <div>
+                <h2 className="text-lg font-semibold mb-4">Vaccination History</h2>
                 <div className="space-y-4">
                   {certificate.vaccinations.map((vaccination) => (
-                    <div key={vaccination.id} className="rounded-lg border p-4">
+                    <div
+                      key={vaccination.id}
+                      className="rounded-lg border p-4"
+                    >
                       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
@@ -200,42 +189,32 @@ export default async function VerifyCertificatePage({
                             Date Administered
                           </dt>
                           <dd className="text-sm">
-                            {format(
-                              new Date(vaccination.dateAdministered),
-                              "PPP"
-                            )}
+                            {format(new Date(vaccination.dateAdministered), "PPP")}
                           </dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
                             Vaccination Center
                           </dt>
-                          <dd className="text-sm">
-                            {vaccination.vaccinationCenter}
-                          </dd>
+                          <dd className="text-sm">{vaccination.vaccinationCenter}</dd>
                         </div>
                         <div>
                           <dt className="text-sm font-medium text-muted-foreground">
                             Vaccinated By
                           </dt>
-                          <dd className="text-sm">
-                            {vaccination.vaccinatedByName}
-                          </dd>
+                          <dd className="text-sm">{vaccination.vaccinatedByName}</dd>
                         </div>
                       </dl>
                     </div>
                   ))}
                 </div>
               </div>
-
-              <div className="rounded-lg border p-4 bg-muted/50">
-                <p className="text-sm text-muted-foreground text-center">
-                  This is an official digital verification page for vaccination
-                  certificates. The information shown here is retrieved directly
-                  from our secure database.
-                </p>
-              </div>
             </div>
+          </div>
+
+          <div className="mt-8 flex justify-center gap-4">
+            <PrintButton />
+            <DownloadButton certificate={certificate} />
           </div>
         </div>
       </div>

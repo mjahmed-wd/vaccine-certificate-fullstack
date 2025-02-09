@@ -1,68 +1,73 @@
-import { Certificate } from "@/app/dashboard/certificates/columns"
-import { Vaccine } from "./vaccines"
+import { Certificate } from "@/app/dashboard/certificates/columns";
+import { Vaccine } from "./vaccines";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+export const API_BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "https://vaccine.popularsylhet.com";
 
 export interface CertificateWithDetails extends Certificate {
-  vaccine: Vaccine
+  vaccine: Vaccine;
   vaccinations: Array<{
-    id: string
-    vaccineId: string
-    vaccineName: string
-    doseNumber: number
-    dateAdministered: string
-    vaccinationCenter: string
-    vaccinatedById: string
-    vaccinatedByName: string
-    vaccine: Vaccine
+    id: string;
+    vaccineId: string;
+    vaccineName: string;
+    doseNumber: number;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedById: string;
+    vaccinatedByName: string;
+    vaccine: Vaccine;
     vaccinatedBy: {
-      firstName: string
-      lastName: string
-      center: string
-    }
-  }>
+      firstName: string;
+      lastName: string;
+      center: string;
+    };
+  }>;
 }
 
 export async function getCertificates(): Promise<Certificate[]> {
-  const response = await fetch(`${API_BASE_URL}/api/certificates`)
+  const response = await fetch(`${API_BASE_URL}/api/certificates`);
   if (!response.ok) {
-    throw new Error("Failed to fetch certificates")
+    throw new Error("Failed to fetch certificates");
   }
-  return response.json()
+  return response.json();
 }
 
-export async function getCertificate(id: string): Promise<CertificateWithDetails> {
-  const response = await fetch(`${API_BASE_URL}/api/certificates/${id}`)
+export async function getCertificate(
+  id: string
+): Promise<CertificateWithDetails> {
+  const response = await fetch(`${API_BASE_URL}/api/certificates/${id}`);
   if (!response.ok) {
-    throw new Error("Failed to fetch certificate")
+    throw new Error("Failed to fetch certificate");
   }
-  return response.json()
+  return response.json();
 }
 
 export type CreateCertificateData = {
-  patientName: string
-  nidNumber?: string
-  passportNumber?: string
-  nationality: string
-  dateOfBirth: string
-  gender: string
-  vaccineId: string
-  doseNumber: number
-  dateAdministered: string
-}
+  patientName: string;
+  nidNumber?: string;
+  passportNumber?: string;
+  nationality: string;
+  dateOfBirth: string;
+  gender: string;
+  vaccineId: string;
+  doseNumber: number;
+  dateAdministered: string;
+};
 
-export async function createCertificate(data: CreateCertificateData): Promise<Certificate> {
+export async function createCertificate(
+  data: CreateCertificateData
+): Promise<Certificate> {
   const response = await fetch(`${API_BASE_URL}/api/certificates`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to create certificate")
+    throw new Error("Failed to create certificate");
   }
-  return response.json()
+  return response.json();
 }
 
 export async function updateCertificate(
@@ -75,18 +80,18 @@ export async function updateCertificate(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to update certificate")
+    throw new Error("Failed to update certificate");
   }
-  return response.json()
+  return response.json();
 }
 
 export async function deleteCertificate(id: string): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/certificates/${id}`, {
     method: "DELETE",
-  })
+  });
   if (!response.ok) {
-    throw new Error("Failed to delete certificate")
+    throw new Error("Failed to delete certificate");
   }
-} 
+}

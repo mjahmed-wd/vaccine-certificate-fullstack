@@ -168,9 +168,24 @@ export function EditCertificateForm({ certificate }: EditCertificateFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="MALE">Male</SelectItem>
-                    <SelectItem value="FEMALE">Female</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
+                    <SelectItem
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      value="MALE"
+                    >
+                      Male
+                    </SelectItem>
+                    <SelectItem
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      value="FEMALE"
+                    >
+                      Female
+                    </SelectItem>
+                    <SelectItem
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      value="OTHER"
+                    >
+                      Other
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -194,8 +209,18 @@ export function EditCertificateForm({ certificate }: EditCertificateFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="true">Active</SelectItem>
-                    <SelectItem value="false">Inactive</SelectItem>
+                    <SelectItem
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      value="true"
+                    >
+                      Active
+                    </SelectItem>
+                    <SelectItem
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      value="false"
+                    >
+                      Inactive
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />

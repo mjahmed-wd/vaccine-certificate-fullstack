@@ -236,7 +236,11 @@ export function CreateCertificateForm() {
                   </FormControl>
                   <SelectContent>
                     {vaccines.map((vaccine) => (
-                      <SelectItem key={vaccine.id} value={vaccine.id}>
+                      <SelectItem
+                        key={vaccine.id}
+                        value={vaccine.id}
+                        className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                      >
                         {vaccine.name} (Total Doses: {vaccine.totalDose})
                       </SelectItem>
                     ))}
@@ -455,9 +459,24 @@ export function CreateCertificateForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="MALE">Male</SelectItem>
-                        <SelectItem value="FEMALE">Female</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem
+                          className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                          value="MALE"
+                        >
+                          Male
+                        </SelectItem>
+                        <SelectItem
+                          className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                          value="FEMALE"
+                        >
+                          Female
+                        </SelectItem>
+                        <SelectItem
+                          className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                          value="OTHER"
+                        >
+                          Other
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

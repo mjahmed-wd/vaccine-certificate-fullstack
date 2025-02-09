@@ -1,24 +1,66 @@
 "use client";
 
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { FaDownload } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { DownloadIcon } from "lucide-react";
+import html2pdf from "html2pdf.js";
 
-const DownloadButton = () => {
+interface Certificate {
+  id: string;
+  certificateNo: number;
+  patientName: string;
+  nidNumber?: string | null;
+  passportNumber?: string | null;
+  nationality: string;
+  dateOfBirth: string;
+  gender: string;
+  vaccineId: string;
+  doseNumber: number;
+  dateAdministered: string;
+  isActive: boolean;
+  vaccine: {
+    id: string;
+    name: string;
+    totalDose: number;
+  };
+  vaccinations: Array<{
+    id: string;
+    vaccineId: string;
+    vaccineName: string;
+    doseNumber: number;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedByName: string;
+  }>;
+}
 
-  const { certificateNo } = useParams();
+interface DownloadButtonProps {
+  certificate: Certificate;
+}
+
+export default function DownloadButton({ certificate }: DownloadButtonProps) {
+  const handleDownload = () => {
+    const element = document.getElementById("certificate-print");
+    if (!element) return;
+
+    const opt = {
+      margin: 1,
+      filename: `vaccination-certificate-${certificate.certificateNo}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+
+    html2pdf().set(opt).from(element).save();
+  };
 
   return (
-    <div className="text-center mb-8">
-      <Link
-        href={`/verify/${certificateNo}/download`}
-        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-      >
-        <FaDownload className="mr-2" />
-        Download Certificate
-      </Link>
-    </div>
+    <Button
+      onClick={handleDownload}
+      variant="outline"
+      className="flex items-center gap-2"
+    >
+      <DownloadIcon className="h-4 w-4" />
+      Download PDF
+    </Button>
   );
-};
-
-export default DownloadButton;
+}

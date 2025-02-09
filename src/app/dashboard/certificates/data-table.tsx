@@ -29,7 +29,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Loader2, Search } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface DataTableProps<TData, TValue> {
@@ -125,16 +124,6 @@ export function DataTable<TData, TValue>({
         <h2 className="text-xl font-bold text-gray-900 transition-colors duration-300 hover:text-[#007C02]">
           Certificates
         </h2>
-        <Link href="/dashboard/certificates/create">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-lg transform transition-all duration-200 ease-in-out 
-                       bg-[#007C02] hover:bg-[#007C02]/90 px-6 py-3 text-sm font-semibold text-white shadow-sm
-                       focus:outline-none focus:ring-2 focus:ring-[#007C02] focus:ring-offset-2 focus:ring-offset-[#007C02]/20"
-          >
-            <span className="mr-2">+</span> New Certificate
-          </button>
-        </Link>
       </div>
 
       {/* Search Section */}
@@ -160,7 +149,11 @@ export function DataTable<TData, TValue>({
             </SelectTrigger>
             <SelectContent>
               {searchFields.map((field) => (
-                <SelectItem key={field.value} value={field.value}>
+                <SelectItem
+                  key={field.value}
+                  value={field.value}
+                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                >
                   {field.label}
                 </SelectItem>
               ))}

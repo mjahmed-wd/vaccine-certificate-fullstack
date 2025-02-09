@@ -93,9 +93,7 @@ export default function CreateUserPage() {
             <h3 className="text-lg font-medium leading-6 text-gray-900">
               Create User
             </h3>
-            <p className="mt-1 text-sm text-gray-600">
-              Create a new user. 
-            </p>
+            <p className="mt-1 text-sm text-gray-600">Create a new user.</p>
           </div>
         </div>
 
@@ -161,10 +159,7 @@ export default function CreateUserPage() {
                           <FormItem>
                             <FormLabel>Password</FormLabel>
                             <FormControl>
-                              <Input
-                                type="password"
-                                {...field}
-                              />
+                              <Input type="password" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -189,10 +184,16 @@ export default function CreateUserPage() {
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value={Role.TECHNICIAN}>
+                                <SelectItem
+                                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                                  value={Role.TECHNICIAN}
+                                >
                                   Technician
                                 </SelectItem>
-                                <SelectItem value={Role.ADMIN}>
+                                <SelectItem
+                                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                                  value={Role.ADMIN}
+                                >
                                   Admin
                                 </SelectItem>
                               </SelectContent>
