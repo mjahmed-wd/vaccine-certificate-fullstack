@@ -4,32 +4,64 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Certificate, columns } from "./columns";
 import { DataTable } from "./data-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
+
+const searchFields = [
+  { value: "certificateNo", label: "Certificate No" },
+  { value: "patientName", label: "Patient Name" },
+  { value: "nidNumber", label: "NID Number" },
+  { value: "passportNumber", label: "Passport Number" },
+] as const;
+
+type SearchField = (typeof searchFields)[number]["value"];
 
 export default function CertificatesPage() {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchField, setSearchField] = useState<SearchField>("patientName");
+  const [isSearching, setIsSearching] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchCertificates = async () => {
+  const fetchCertificates = async (page?: number, limit?: number) => {
     try {
-      const response = await fetch('/api/certificates', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `/api/certificates?page=${page || currentPage}&limit=${limit || pageSize}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const { data, meta } = await response.json();
       
       if (data.error) {
         throw new Error(data.error);
       }
 
       setCertificates(data);
+      setTotalPages(meta.pageCount);
       setError(null);
     } catch (err) {
       console.error('Error fetching certificates:', err);
@@ -41,7 +73,61 @@ export default function CertificatesPage() {
 
   useEffect(() => {
     fetchCertificates();
-  }, []);
+  }, [currentPage, pageSize]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim() && !fromDate && !toDate) {
+      fetchCertificates();
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const url = `/api/certificates/search?`;
+      const params = new URLSearchParams();
+      
+      if (searchQuery.trim()) {
+        params.append('field', searchField);
+        params.append('query', searchQuery);
+      }
+      
+      if (fromDate) {
+        params.append('fromDate', fromDate);
+      }
+      
+      if (toDate) {
+        params.append('toDate', toDate);
+      }
+      
+      params.append('limit', pageSize.toString());
+      params.append('page', currentPage.toString());
+      
+      const response = await fetch(`${url}${params.toString()}`);
+      const { data, meta } = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to search certificates");
+      }
+      setCertificates(data);
+      setTotalPages(meta.pageCount);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to search certificates",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handlePageSizeChange = (newPageSize: number) => {
+    setPageSize(newPageSize);
+    setCurrentPage(1); // Reset to first page when changing page size
+    fetchCertificates(1, newPageSize);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const handleRetry = () => {
     setIsLoading(true);
@@ -90,6 +176,81 @@ export default function CertificatesPage() {
       )}
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
+        {/* Search Section - Always visible */}
+        <div className="p-4 border-b">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+            <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+              <Input
+                placeholder="Search certificates..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="min-w-[200px] flex-1 transition-colors duration-200 focus:border-[#007C02] focus:ring-[#007C02]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+              />
+              <Select
+                value={searchField}
+                onValueChange={(value: SearchField) => setSearchField(value)}
+              >
+                <SelectTrigger className="w-full sm:w-[180px] transition-colors duration-200 focus:border-[#007C02] focus:ring-[#007C02]">
+                  <SelectValue placeholder="Search by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {searchFields.map((field) => (
+                    <SelectItem
+                      key={field.value}
+                      value={field.value}
+                      className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                    >
+                      {field.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Date Range Filters */}
+              <div className="flex gap-2">
+                <Input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full sm:w-[180px] transition-colors duration-200 focus:border-[#007C02] focus:ring-[#007C02]"
+                  placeholder="From Date"
+                />
+                <Input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full sm:w-[180px] transition-colors duration-200 focus:border-[#007C02] focus:ring-[#007C02]"
+                  placeholder="To Date"
+                />
+              </div>
+
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching}
+                className="w-full sm:w-auto transition-transform duration-200 hover:scale-105"
+              >
+                {isSearching ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="mr-2 h-4 w-4" />
+                    Search
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table Section */}
         {isLoading ? (
           <div className="px-6 py-8 text-center">
             <div className="flex justify-center items-center space-x-2">
@@ -102,7 +263,15 @@ export default function CertificatesPage() {
             No certificates found in the system.
           </div>
         ) : (
-          <DataTable columns={columns} data={certificates} />
+          <DataTable 
+            columns={columns} 
+            data={certificates}
+            pageCount={totalPages}
+            pageSize={pageSize}
+            currentPage={currentPage}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+          />
         )}
       </div>
     </div>

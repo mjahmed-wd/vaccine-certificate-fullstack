@@ -2,8 +2,17 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const limit = searchParams.get('limit');
+    const page = searchParams.get('page');
+    const take = limit ? parseInt(limit, 10) : 10;
+    const skip = page ? (parseInt(page, 10) - 1) * take : 0;
+
+    // Get total count
+    const total = await db.certificate.count();
+
     const certificates = await db.certificate.findMany({
       select: {
         id: true,
@@ -33,9 +42,19 @@ export async function GET() {
       orderBy: {
         createdAt: "desc",
       },
+      skip,
+      take,
     });
 
-    return NextResponse.json(certificates);
+    return NextResponse.json({
+      data: certificates,
+      meta: {
+        total,
+        page: page ? parseInt(page, 10) : 1,
+        pageSize: take,
+        pageCount: Math.ceil(total / take)
+      }
+    });
   } catch (error) {
     console.error("Failed to fetch certificates:", error);
     return NextResponse.json(

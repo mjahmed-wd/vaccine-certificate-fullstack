@@ -7,17 +7,19 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const field = searchParams.get("field");
     const query = searchParams.get("query");
+    const fromDate = searchParams.get("fromDate");
+    const toDate = searchParams.get("toDate");
+    const limit = searchParams.get("limit");
+    const page = searchParams.get("page");
+    const take = limit ? parseInt(limit, 10) : 10;
+    const skip = page ? (parseInt(page, 10) - 1) * take : 0;
 
-    if (!field || !query) {
-      return NextResponse.json(
-        { error: "Missing search parameters" },
-        { status: 400 }
-      );
-    }
+    // Build the where clause based on the search field and date range
+    let where: Prisma.CertificateWhereInput = {};
 
-    // Build the where clause based on the search field
-    const where: Prisma.CertificateWhereInput =
-      field === "certificateNo"
+    // Add search criteria if provided
+    if (field && query) {
+      where = field === "certificateNo"
         ? {
             certificateNo: parseInt(query),
           }
@@ -39,10 +41,19 @@ export async function GET(request: Request) {
               mode: "insensitive",
             },
           };
+    }
+
+    // Add date range criteria if provided
+    if (fromDate || toDate) {
+      where.updatedAt = {
+        ...(fromDate && { gte: new Date(fromDate) }),
+        ...(toDate && { lte: new Date(toDate + 'T23:59:59') }),
+      };
+    }
 
     // Special handling for certificate number
     if (field === "certificateNo") {
-      const certificateNo = parseInt(query);
+      const certificateNo = parseInt(query || "");
       if (isNaN(certificateNo)) {
         return NextResponse.json(
           { error: "Invalid certificate number" },
@@ -50,6 +61,9 @@ export async function GET(request: Request) {
         );
       }
     }
+
+    // Get total count
+    const total = await db.certificate.count({ where });
 
     const certificates = await db.certificate.findMany({
       where,
@@ -68,6 +82,7 @@ export async function GET(request: Request) {
         vaccine: {
           select: {
             name: true,
+            totalDose: true,
           },
         },
         vaccinations: {
@@ -81,14 +96,24 @@ export async function GET(request: Request) {
             doseNumber: "asc",
           },
         },
+        boosterDoses: true,
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: 50, // Limit results
+      skip,
+      take,
     });
 
-    return NextResponse.json(certificates);
+    return NextResponse.json({
+      data: certificates,
+      meta: {
+        total,
+        page: page ? parseInt(page, 10) : 1,
+        pageSize: take,
+        pageCount: Math.ceil(total / take)
+      }
+    });
   } catch (error) {
     console.error("Failed to search certificates:", error);
     return NextResponse.json(
