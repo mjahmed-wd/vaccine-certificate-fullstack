@@ -42,6 +42,23 @@ export async function GET(
             doseNumber: "asc",
           },
         },
+        boosterDoses: {
+          select: {
+            id: true,
+            vaccineId: true,
+            dateAdministered: true,
+            vaccinationCenter: true,
+            vaccinatedById: true,
+            vaccinatedByName: true,
+            providerId: true,
+            provider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
 
