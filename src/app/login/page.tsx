@@ -28,11 +28,15 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
+      console.log("Attempting login with:", data.username);
+      
       const result = await signIn("credentials", {
         username: data.username,
         password: data.password,
         redirect: false,
       });
+
+      console.log("Login result:", result);
 
       if (result?.error) {
         setError("Invalid username or password");
@@ -41,7 +45,8 @@ export default function LoginPage() {
 
       router.push("/dashboard");
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("Login error:", error);
       setError("An error occurred. Please try again.");
     }
   };

@@ -9,16 +9,20 @@ datasource db {
 }
 
 model User {
-    id           String   @id @default(uuid())
-    firstName    String
-    lastName     String
-    username     String   @unique
-    role         Role     @default(TECHNICIAN)
-    center       String
-    phone        String
-    passwordHash String
-    createdAt    DateTime @default(now())
-    updatedAt    DateTime @updatedAt
+    id               String   @id @default(uuid())
+    firstName        String
+    lastName         String
+    fatherName       String
+    motherName       String
+    username         String   @unique
+    role             Role     @default(TECHNICIAN)
+    center           String
+    phone            String
+    phoneNumber      String
+    permanentAddress String
+    passwordHash     String
+    createdAt        DateTime @default(now())
+    updatedAt        DateTime @updatedAt
 }
 
 model Vaccine {
@@ -29,11 +33,23 @@ model Vaccine {
     updatedAt         DateTime            @updatedAt
     certificates      Certificate[]
     VaccinationRecord VaccinationRecord[]
+    providers         VaccineProvider[]
+}
+
+model VaccineProvider {
+    id        String   @id @default(uuid())
+    name      String
+    vaccineId String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    vaccine   Vaccine  @relation(fields: [vaccineId], references: [id])
+
+    @@index([vaccineId])
 }
 
 model Certificate {
     id               String   @id @default(uuid())
-    certificateNo    Int      @unique @default(autoincrement())
+    certificateNo    String   @unique @default("P-000001") // Changed to String to support prefix
     nidNumber        String?
     passportNumber   String?
     nationality      String
