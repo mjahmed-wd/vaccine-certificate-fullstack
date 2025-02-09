@@ -1,11 +1,11 @@
 "use client";
 
-import { format } from "date-fns";
-
 interface Certificate {
   id: string;
   certificateNo: number;
   patientName: string;
+  fatherName: string;
+  motherName: string;
   nidNumber?: string | null;
   passportNumber?: string | null;
   nationality: string;
@@ -29,6 +29,12 @@ interface Certificate {
     vaccinationCenter: string;
     vaccinatedByName: string;
   }>;
+  boosterDoses?: Array<{
+    id: string;
+    dateAdministered: string;
+    vaccinationCenter: string;
+    vaccinatedByName: string;
+  }>;
 }
 
 interface VaccinationCertificatePrintProps {
@@ -39,150 +45,111 @@ export default function VaccinationCertificatePrint({
   certificate,
 }: VaccinationCertificatePrintProps) {
   return (
-    <div id="certificate-print" className="hidden print:block">
-      <div className="p-8">
-        <div className="mb-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold tracking-tight">
-              Certificate #{certificate.certificateNo}
-            </h1>
-            <p className="text-muted-foreground">Vaccination Certificate</p>
-            {!certificate.isActive && (
-              <div className="mt-4 inline-block rounded-md bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive">
-                This certificate is no longer active
-              </div>
-            )}
-          </div>
-        </div>
+    <div
+      id="certificate-print"
+      className="hidden print:block"
+      style={{ fontFamily: "Times New Roman" }}
+    >
+      <div className="">
+        <img src="/pad-top.jpg" alt="Logo" />
 
-        <div className="grid gap-8 md:grid-cols-2">
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-lg font-semibold mb-4">
-                Patient Information
-              </h2>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Name
-                  </dt>
-                  <dd className="text-sm">{certificate.patientName}</dd>
-                </div>
-                {certificate.nidNumber && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      NID Number
-                    </dt>
-                    <dd className="text-sm">{certificate.nidNumber}</dd>
-                  </div>
-                )}
-                {certificate.passportNumber && (
-                  <div>
-                    <dt className="text-sm font-medium text-muted-foreground">
-                      Passport Number
-                    </dt>
-                    <dd className="text-sm">{certificate.passportNumber}</dd>
-                  </div>
-                )}
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Nationality
-                  </dt>
-                  <dd className="text-sm">{certificate.nationality}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Date of Birth
-                  </dt>
-                  <dd className="text-sm">
-                    {format(new Date(certificate.dateOfBirth), "PPP")}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Gender
-                  </dt>
-                  <dd className="text-sm">{certificate.gender}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-lg font-semibold mb-4">
+        <hr className="border-t-2 border-black mt-2" />
+        <hr className="border-t-2 border-black" style={{ marginTop: "2px" }} />
+        <h2
+          className="font-serif font-bold text-center underline mb-4"
+          style={{ fontSize: "1.2rem" }}
+        >
+          Vaccination Certificate
+        </h2>
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="border border-black text-left p-2">
+                Certificate No:
+              </th>
+              <th className="border border-black text-left p-2" colSpan={3}>
+                Date: 04/02/2025
+              </th>
+            </tr>
+            <tr>
+              <th className="border border-black text-left p-2" colSpan={2}>
+                Beneficiary Details
+              </th>
+              <th className="border border-black text-left p-2" colSpan={2}>
                 Vaccination Details
-              </h2>
-              <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Vaccine
-                  </dt>
-                  <dd className="text-sm">{certificate.vaccine.name}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Total Doses Required
-                  </dt>
-                  <dd className="text-sm">{certificate.vaccine.totalDose}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-4">
-                Vaccination History
-              </h2>
-              <div className="space-y-4">
-                {certificate.vaccinations.map((vaccination) => (
-                  <div key={vaccination.id} className="rounded-lg border p-4">
-                    <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">
-                          Vaccine
-                        </dt>
-                        <dd className="text-sm">{vaccination.vaccineName}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">
-                          Dose Number
-                        </dt>
-                        <dd className="text-sm">{vaccination.doseNumber}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">
-                          Date Administered
-                        </dt>
-                        <dd className="text-sm">
-                          {format(
-                            new Date(vaccination.dateAdministered),
-                            "PPP"
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">
-                          Vaccination Center
-                        </dt>
-                        <dd className="text-sm">
-                          {vaccination.vaccinationCenter}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-sm font-medium text-muted-foreground">
-                          Vaccinated By
-                        </dt>
-                        <dd className="text-sm">
-                          {vaccination.vaccinatedByName}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-black p-2">Name:</td>
+              <td className="border border-black p-2">
+                {certificate.patientName}
+              </td>
+              <td className="border border-black p-2">Name of Vaccine</td>
+              <td className="border border-black p-2">
+                Ingovax (Meningococcal Polysaccharide Vaccine BP)
+              </td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Father&apos;s Name:</td>
+              <td className="border border-black p-2">
+                {certificate.fatherName}
+              </td>
+              <td className="border border-black p-2">Vaccination Center:</td>
+              <td className="border border-black p-2">
+                Popular Medical Centre and Hospital.
+              </td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Mother&apos;s Name:</td>
+              <td className="border border-black p-2">
+                {certificate.motherName}
+              </td>
+              <td className="border border-black p-2">Dose 1</td>
+              <td className="border border-black p-2">☐ Given Date:</td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Date of Birth:</td>
+              <td className="border border-black p-2">
+                {certificate.dateOfBirth}
+              </td>
+              <td className="border border-black p-2">Dose 2</td>
+              <td className="border border-black p-2">☐ Given Date:</td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Gender:</td>
+              <td className="border border-black p-2">{certificate.gender}</td>
+              <td className="border border-black p-2">Dose 3</td>
+              <td className="border border-black p-2">☐ Given Date:</td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">NID No:</td>
+              <td className="border border-black p-2">
+                {certificate.nidNumber}
+              </td>
+              <td className="border border-black p-2">Dose 4</td>
+              <td className="border border-black p-2">☐ Given Date:</td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Passport No:</td>
+              <td className="border border-black p-2">
+                {certificate.passportNumber}
+              </td>
+              <td className="border border-black p-2">Booster Dose</td>
+              <td className="border border-black p-2">☐ Given Date:</td>
+            </tr>
+            <tr>
+              <td className="border border-black p-2">Nationality:</td>
+              <td className="border border-black p-2">
+                {certificate.nationality}
+              </td>
+              <td className="border border-black p-2" colSpan={2}>
+                E-mail: popularsylhet2005@gmail.com
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
