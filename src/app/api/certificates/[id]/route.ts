@@ -82,6 +82,10 @@ export async function PUT(
       dateOfBirth,
       gender,
       isActive,
+      fatherName,
+      motherName,
+      phoneNumber,
+      permanentAddress,
     } = json;
 
     const certificate = await db.certificate.update({
@@ -96,6 +100,10 @@ export async function PUT(
         dateOfBirth: new Date(dateOfBirth),
         gender,
         isActive,
+        fatherName,
+        motherName,
+        phoneNumber,
+        permanentAddress,
       },
       include: {
         vaccine: true,

@@ -16,6 +16,10 @@ export type Certificate = {
   id: string;
   certificateNo: number;
   patientName: string;
+  fatherName: string;
+  motherName: string;
+  permanentAddress: string;
+  phoneNumber: string;
   nidNumber?: string | null;
   passportNumber?: string | null;
   nationality: string;

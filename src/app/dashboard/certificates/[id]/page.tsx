@@ -66,6 +66,18 @@ export default async function ViewCertificatePage({
               </div>
               <div>
                 <dt className="text-sm font-medium text-muted-foreground">
+                  Father&apos;s Name
+                </dt>
+                <dd className="text-sm">{certificate.fatherName}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  Mother&apos;s Name
+                </dt>
+                <dd className="text-sm">{certificate.motherName}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
                   Date of Birth
                 </dt>
                 <dd className="text-sm">
@@ -83,6 +95,18 @@ export default async function ViewCertificatePage({
                   Nationality
                 </dt>
                 <dd className="text-sm">{certificate.nationality}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  Phone Number
+                </dt>
+                <dd className="text-sm">{certificate.phoneNumber}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-muted-foreground">
+                  Permanent Address
+                </dt>
+                <dd className="text-sm">{certificate.permanentAddress}</dd>
               </div>
               {certificate.nidNumber && (
                 <div>

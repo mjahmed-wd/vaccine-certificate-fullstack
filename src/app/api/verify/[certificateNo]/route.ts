@@ -6,8 +6,8 @@ export async function GET(
   { params }: { params: Promise<Record<string, string>> }
 ) {
   try {
-    const { certificateNo } = await params;
-
+    const certificateNo = (await params).certificateNo;
+    
     const certificate = await db.certificate.findUnique({
       where: {
         certificateNo: parseInt(certificateNo),

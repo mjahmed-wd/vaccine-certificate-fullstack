@@ -12,9 +12,11 @@ const vaccinationSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<Record<string, string>> }
 ) {
   try {
+    const id = (await params).id;
+
     const session = await auth();
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -25,7 +27,7 @@ export async function POST(
 
     // Get the certificate
     const certificate = await db.certificate.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         vaccinations: true,
         vaccine: true,
@@ -67,7 +69,7 @@ export async function POST(
 
     // Add the new vaccination record
     const updatedCertificate = await db.certificate.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         vaccinations: {
           create: {
@@ -108,4 +110,4 @@ export async function POST(
       { status: 500 }
     );
   }
-} 
+}

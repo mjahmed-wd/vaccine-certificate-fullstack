@@ -27,6 +27,10 @@ import { Certificate } from "@/app/dashboard/certificates/columns";
 
 const formSchema = z.object({
   patientName: z.string().min(1, "Patient name is required"),
+  fatherName: z.string().min(1, "Father&apos;s name is required"),
+  motherName: z.string().min(1, "Mother&apos;s name is required"),
+  permanentAddress: z.string().min(1, "Permanent address is required"),
+  phoneNumber: z.string().min(1, "Phone number is required"),
   nidNumber: z.string().optional(),
   passportNumber: z.string().optional(),
   nationality: z.string().min(1, "Nationality is required"),
@@ -49,6 +53,10 @@ export function EditCertificateForm({ certificate }: EditCertificateFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       patientName: certificate.patientName,
+      fatherName: certificate.fatherName,
+      motherName: certificate.motherName,
+      permanentAddress: certificate.permanentAddress,
+      phoneNumber: certificate.phoneNumber,
       nidNumber: certificate.nidNumber || "",
       passportNumber: certificate.passportNumber || "",
       nationality: certificate.nationality,
@@ -90,6 +98,62 @@ export function EditCertificateForm({ certificate }: EditCertificateFormProps) {
                 <FormLabel>Patient Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Enter patient name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="fatherName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Father&apos;s Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter father&apos;s name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="motherName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mother&apos;s Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter mother&apos;s name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="permanentAddress"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Permanent Address</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter permanent address" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone Number</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter phone number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

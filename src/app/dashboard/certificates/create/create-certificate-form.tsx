@@ -548,9 +548,9 @@ export function CreateCertificateForm() {
                 name="fatherName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Father's Name</FormLabel>
+                    <FormLabel>Father&apos;s Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter father's name" {...field} />
+                      <Input placeholder="Enter father&apos;s name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -562,9 +562,9 @@ export function CreateCertificateForm() {
                 name="motherName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mother's Name</FormLabel>
+                    <FormLabel>Mother&apos;s Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter mother's name" {...field} />
+                      <Input placeholder="Enter mother&apos;s name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
