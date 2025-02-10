@@ -5,7 +5,7 @@ import { encryptText } from "@/lib/crypto";
 import { formatDate } from "date-fns";
 import QRCode from "react-qr-code";
 
-interface Certificate {
+export interface Certificate {
   id: string;
   certificateNo: number;
   patientName: string;
@@ -52,10 +52,12 @@ interface Certificate {
 
 interface VaccinationCertificatePrintProps {
   certificate: Certificate;
+  isShowOnScreen: boolean;
 }
 
 export default function VaccinationCertificatePrint({
   certificate,
+  isShowOnScreen,
 }: VaccinationCertificatePrintProps) {
   const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${encryptText(
     certificate.certificateNo.toString()
@@ -63,7 +65,7 @@ export default function VaccinationCertificatePrint({
   return (
     <div
       id="certificate-print"
-      className="hidden print:block"
+      className={`${isShowOnScreen ? "block" : "hidden"} print:block`}
       style={{ fontFamily: "Times New Roman" }}
     >
       <div className="">

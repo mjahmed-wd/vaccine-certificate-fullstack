@@ -137,7 +137,7 @@ export default async function VerifyCertificatePage({
 
   return (
     <div className="">
-      <VaccinationCertificatePrint certificate={certificate} />
+      <VaccinationCertificatePrint certificate={certificate} isShowOnScreen={false} />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white print:hidden">
         <div className="container mx-auto py-10">

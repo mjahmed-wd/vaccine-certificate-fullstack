@@ -1,27 +1,30 @@
 "use client";
 
-import { CertificateWithDetails } from "@/lib/api/certificates";
+import { decryptNumber } from "@/lib/crypto";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import PrintPreview from "../components/print-preview";
+import VaccinationCertificatePrint, { Certificate } from "../print";
 
 const DownloadPage = () => {
   const [isClient, setIsClient] = useState(false);
-  const [certificate, setCertificate] = useState<CertificateWithDetails | null>(
-    null
-  );
+  const [certificate, setCertificate] = useState<Certificate | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { certificateNo } = useParams();
 
   const fetchCertificate = useCallback(async () => {
     try {
-      const response = await fetch(
-        `/api/certificates/by-number/${certificateNo}`
-      );
-      if (!response.ok) throw new Error("Failed to fetch certificate");
-      const data = await response.json();
-      setCertificate(data);
+      const decryptedNumber = decryptNumber(certificateNo as string);
+      if (decryptedNumber && decryptedNumber !== 0) {
+        const response = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_APP_URL
+          }/api/verify/${decryptedNumber.toString()}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch certificate");
+        const data = await response.json();
+        setCertificate(data);
+      }
     } catch (error) {
       console.error("Error fetching certificate:", error);
     } finally {
@@ -38,7 +41,7 @@ const DownloadPage = () => {
     if (isClient) {
       try {
         const html2pdf = (await import("html2pdf.js")).default;
-        const element = document.getElementById("certificate");
+        const element = document.getElementById("certificate-print");
         if (element) {
           const opt = {
             margin: 10,
@@ -73,6 +76,6 @@ const DownloadPage = () => {
     );
   }
 
-  return <PrintPreview certificate={certificate} />;
+  return <VaccinationCertificatePrint certificate={certificate} isShowOnScreen={true}/>;
 };
 export default DownloadPage;
