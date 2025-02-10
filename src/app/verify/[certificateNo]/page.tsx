@@ -280,25 +280,6 @@ export default async function VerifyCertificatePage({
                     />
                   </div>
                 </div>
-
-                {/* Next Dose Due Date (if applicable) */}
-                {certificate.vaccinations.length > 0 &&
-                  certificate.vaccinations.length <
-                    certificate.vaccine.totalDose && (
-                    <div className="mt-6 flex justify-center">
-                      <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                        <span className="font-medium">Next Dose Due: </span>
-                        {format(
-                          new Date(
-                            certificate.vaccinations[
-                              certificate.vaccinations.length - 1
-                            ].dateAdministered
-                          ),
-                          "PPP"
-                        )}
-                      </div>
-                    </div>
-                  )}
               </div>
 
               {/* Patient Information Card */}
