@@ -44,12 +44,20 @@ interface Certificate {
     dateAdministered: string;
     vaccinationCenter: string;
     vaccinatedByName: string;
+    provider: {
+      id: string;
+      name: string;
+    };
   }>;
   boosterDoses?: Array<{
     id: string;
     dateAdministered: string;
     vaccinationCenter: string;
     vaccinatedByName: string;
+    provider: {
+      id: string;
+      name: string;
+    };
   }>;
 }
 
@@ -407,6 +415,14 @@ export default async function VerifyCertificatePage({
                           </div>
                           <div className="space-y-1">
                             <dt className="text-sm font-medium text-green-800">
+                              Provider
+                            </dt>
+                            <dd className="text-sm font-semibold text-gray-900">
+                              {vaccination.provider?.name}
+                            </dd>
+                          </div>
+                          <div className="space-y-1">
+                            <dt className="text-sm font-medium text-green-800">
                               Dose Number
                             </dt>
                             <dd className="text-sm font-semibold text-gray-900">
@@ -499,6 +515,16 @@ export default async function VerifyCertificatePage({
                                 )}
                               </dd>
                             </div>
+                          
+                            <div className="space-y-1">
+                              <dt className="text-sm font-medium text-purple-800">
+                                Provider
+                              </dt>
+                              <dd className="text-sm font-semibold text-gray-900">
+                                {booster.provider?.name}
+                              </dd>
+                            </div>
+                          
                             <div className="space-y-1">
                               <dt className="text-sm font-medium text-purple-800">
                                 Vaccination Center

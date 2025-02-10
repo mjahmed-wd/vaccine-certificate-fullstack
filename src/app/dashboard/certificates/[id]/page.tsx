@@ -187,7 +187,7 @@ export default async function ViewCertificatePage({
                     </div>
                     <div className="space-y-1">
                       <dt className="text-sm font-medium text-green-800">Provider</dt>
-                      <dd className="text-sm font-semibold text-gray-900">{vaccination.vaccinatedByName}</dd>
+                      <dd className="text-sm font-semibold text-gray-900">{vaccination.provider?.name}</dd>
                     </div>
                     <div className="space-y-1">
                       <dt className="text-sm font-medium text-green-800">Date Administered</dt>

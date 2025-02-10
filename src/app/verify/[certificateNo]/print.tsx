@@ -31,12 +31,20 @@ interface Certificate {
     dateAdministered: string;
     vaccinationCenter: string;
     vaccinatedByName: string;
+    provider: {
+      id: string;
+      name: string;
+    };
   }>;
   boosterDoses?: Array<{
     id: string;
     dateAdministered: string;
     vaccinationCenter: string;
     vaccinatedByName: string;
+    provider: {
+      id: string;
+      name: string;
+    };
   }>;
 }
 
@@ -70,7 +78,7 @@ export default function VaccinationCertificatePrint({
             <tr className="c55">
               <td className="c67" colSpan={4} rowSpan={1}>
                 <p className="c23">
-                  <span className="c0">&nbsp;Certificate No: 00049</span>
+                  <span className="c0">&nbsp;Certificate No: {certificate.certificateNo}</span>
                 </p>
                 <p className="c23 c24">
                   <span className="c0"></span>
@@ -78,7 +86,7 @@ export default function VaccinationCertificatePrint({
               </td>
               <td className="c31" colSpan={1} rowSpan={1}>
                 <p className="c23">
-                  <span className="c0">&nbsp;Date: 04/02/2025</span>
+                  <span className="c0">&nbsp;Date: {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}</span>
                 </p>
               </td>
             </tr>
@@ -118,7 +126,9 @@ export default function VaccinationCertificatePrint({
                   <span className="c0">{certificate.vaccine.name}</span>
                 </p>
                 <p className="c10">
-                  <span className="c0">(Incepta Pharmaceuticals Ltd.)</span>
+                  <span className="c0">
+                    ({certificate.vaccinations?.[0]?.provider?.name})
+                  </span>
                 </p>
               </td>
             </tr>
