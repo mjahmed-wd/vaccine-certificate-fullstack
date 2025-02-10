@@ -68,7 +68,7 @@ export default function VaccinationCertificatePrint({
         <hr className="border-t-2 border-black" style={{ marginTop: "2px" }} />
         {/* <img src="/pad-bar.jpg" alt="Bar" className="mt-2"/> */}
         <h2
-          className="font-serif font-bold text-center underline mb-4"
+          className="font-serif font-bold text-center text-black underline mb-4"
           style={{ fontSize: "1.2rem" }}
         >
           Vaccination Certificate
@@ -78,7 +78,9 @@ export default function VaccinationCertificatePrint({
             <tr className="c55">
               <td className="c67" colSpan={4} rowSpan={1}>
                 <p className="c23">
-                  <span className="c0">&nbsp;Certificate No: {certificate.certificateNo}</span>
+                  <span className="c0">
+                    &nbsp;Certificate No: {certificate.certificateNo}
+                  </span>
                 </p>
                 <p className="c23 c24">
                   <span className="c0"></span>
@@ -86,7 +88,10 @@ export default function VaccinationCertificatePrint({
               </td>
               <td className="c31" colSpan={1} rowSpan={1}>
                 <p className="c23">
-                  <span className="c0">&nbsp;Date: {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}</span>
+                  <span className="c0">
+                    &nbsp;Date:{" "}
+                    {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}
+                  </span>
                 </p>
               </td>
             </tr>
@@ -170,180 +175,134 @@ export default function VaccinationCertificatePrint({
                   <span className="c0">{certificate.motherName}</span>
                 </p>
               </td>
-              <td className="c14" colSpan={1} rowSpan={1}>
+              <td className="c14" colSpan={3} rowSpan={1}>
                 <p className="c10">
-                  <span className="c0">Dose 1</span>
-                </p>
-              </td>
-              <td className="c63" colSpan={1} rowSpan={1}>
-                <p className="c2">
-                  <span>
-                    <input
-                      className="form-checkbox h-4 w-4 text-blue-600 border-2 border-gray-300 rounded"
-                      aria-label="Dose 1 given for Jubair"
-                      type="checkbox"
-                      style={{
-                        appearance: "none" /* Remove default styling */,
-                        border: "1px solid black" /* Your desired border */,
-                        /* Add other necessary styles like width, height, etc. */
-                        width: "1rem" /* Example */,
-                        height: "1rem" /* Example */,
-                      }}
-                    ></input>
-                  </span>
-                </p>
-              </td>
-              <td className="c31" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Given Date:</span>
+                  <span className="c0">Vaccination Details</span>
                 </p>
               </td>
             </tr>
-            <tr className="c18">
-              <td className="c32" colSpan={1} rowSpan={2}>
-                <p className="c10">
-                  <span className="c0">Date of Birth:</span>
-                </p>
-                <p className="c6">
-                  <span className="c0"></span>
-                </p>
-              </td>
-              <td className="c50" colSpan={1} rowSpan={2}>
-                <p className="c7">
-                  <span className="c0">
-                    {formatDate(certificate.dateOfBirth, "dd/MM/yyyy")}
-                  </span>
-                </p>
-              </td>
-              <td className="c11" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Dose 2</span>
-                </p>
-              </td>
-              <td className="c43" colSpan={1} rowSpan={1}>
-                <p className="c2">
-                  <span>
-                    <input
-                      className="form-checkbox h-4 w-4 text-blue-600 border-2 border-gray-300 rounded"
-                      aria-label="Dose 1 given for Jubair"
-                      type="checkbox"
-                      style={{
-                        appearance: "none" /* Remove default styling */,
-                        border: "1px solid black" /* Your desired border */,
-                        /* Add other necessary styles like width, height, etc. */
-                        width: "1rem" /* Example */,
-                        height: "1rem" /* Example */,
-                      }}
-                    ></input>
-                  </span>
-                </p>
-              </td>
-              <td className="c75" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Given Date:</span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c46">
-              <td className="c29" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Dose 3</span>
-                </p>
-              </td>
-              <td className="c26" colSpan={1} rowSpan={1}>
-                <p className="c2">
-                  <span>
-                    <input
-                      className="form-checkbox h-4 w-4 text-blue-600 border-2 border-gray-300 rounded"
-                      aria-label="Dose 1 given for Jubair"
-                      type="checkbox"
-                      style={{
-                        appearance: "none" /* Remove default styling */,
-                        border: "1px solid black" /* Your desired border */,
-                        /* Add other necessary styles like width, height, etc. */
-                        width: "1rem" /* Example */,
-                        height: "1rem" /* Example */,
-                      }}
-                    ></input>
-                  </span>
-                </p>
-              </td>
-              <td className="c30" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Given Date:</span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c18">
-              <td className="c58" colSpan={1} rowSpan={2}>
-                <p className="c45">
-                  <span className="c0">&nbsp; Gender:</span>
-                </p>
-              </td>
-              <td className="c60" colSpan={1} rowSpan={2}>
-                <p className="c7">
-                  <span className="c0">{certificate.gender}</span>
-                </p>
-              </td>
-              <td className="c29" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Dose 4</span>
-                </p>
-              </td>
-              <td className="c26" colSpan={1} rowSpan={1}>
-                <p className="c2">
-                  <span>
-                    <input
-                      className="form-checkbox h-4 w-4 text-blue-600 border-2 border-gray-300 rounded"
-                      aria-label="Dose 1 given for Jubair"
-                      type="checkbox"
-                      style={{
-                        appearance: "none" /* Remove default styling */,
-                        border: "1px solid black" /* Your desired border */,
-                        /* Add other necessary styles like width, height, etc. */
-                        width: "1rem" /* Example */,
-                        height: "1rem" /* Example */,
-                      }}
-                    ></input>
-                  </span>
-                </p>
-              </td>
-              <td className="c30" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Given Date:</span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c41">
-              <td className="c64" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Booster Dose</span>
-                </p>
-              </td>
-              <td className="c68" colSpan={1} rowSpan={1}>
-                <p className="c2">
-                  <span>
-                    <input
-                      className="form-checkbox h-4 w-4 text-blue-600 border-2 border-gray-300 rounded"
-                      aria-label="Dose 1 given for Jubair"
-                      type="checkbox"
-                      style={{
-                        appearance: "none" /* Remove default styling */,
-                        border: "1px solid black" /* Your desired border */,
-                        /* Add other necessary styles like width, height, etc. */
-                        width: "1rem" /* Example */,
-                        height: "1rem" /* Example */,
-                      }}
-                    ></input>
-                  </span>
-                </p>
-              </td>
-              <td className="c81" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Given Date:</span>
-                </p>
-              </td>
-            </tr>
+            {/* Generate rows for regular doses */}
+            {Array.from({ length: certificate.vaccine.totalDose }).map(
+              (_, index) => {
+                const doseNumber = index + 1;
+                const vaccination = certificate.vaccinations.find(
+                  (v) => v.doseNumber === doseNumber
+                );
+
+                return (
+                  <tr key={`dose-${doseNumber}`} className="c18">
+                    {doseNumber === 1 && (
+                      <>
+                        <td
+                          className="c32"
+                          colSpan={1}
+                          rowSpan={certificate.vaccine.totalDose}
+                        >
+                          <p className="c10">
+                            <span className="c0">Date of Birth:</span>
+                          </p>
+                        </td>
+                        <td
+                          className="c50"
+                          colSpan={1}
+                          rowSpan={certificate.vaccine.totalDose}
+                        >
+                          <p className="c7">
+                            <span className="c0">
+                              {formatDate(
+                                certificate.dateOfBirth,
+                                "dd/MM/yyyy"
+                              )}
+                            </span>
+                          </p>
+                        </td>
+                      </>
+                    )}
+                    <td className="c11" colSpan={1}>
+                      <p className="c10">
+                        <span className="c0">Dose {doseNumber}</span>
+                      </p>
+                    </td>
+                    <td className="c43" colSpan={1}>
+                      <p className="c2">
+                        {" "}
+                        {vaccination ? (
+                          <span className="c0">✓</span>
+                        ) : (
+                          <span className="c0">☐</span>
+                        )}
+                      </p>
+                    </td>
+                    <td className="c75" colSpan={1}>
+                      <p className="c10">
+                        <span className="c0">
+                          Given Date:{" "}
+                          {vaccination
+                            ? formatDate(
+                                vaccination.dateAdministered,
+                                "dd/MM/yyyy"
+                              )
+                            : ""}
+                        </span>
+                      </p>
+                    </td>
+                  </tr>
+                );
+              }
+            )}
+
+            {/* Generate rows for booster doses */}
+            {certificate.boosterDoses &&
+              certificate.boosterDoses.length > 0 &&
+              certificate.boosterDoses.map((booster, index) => (
+                <tr key={`booster-${index}`} className="c18">
+                  {index === 0 && (
+                    <>
+                      <td
+                        className="c32"
+                        colSpan={1}
+                        rowSpan={certificate.boosterDoses?.length || 1}
+                      >
+                        <p className="c10">
+                          <span className="c0">Gender:</span>
+                        </p>
+                      </td>
+                      <td
+                        className="c50"
+                        colSpan={1}
+                        rowSpan={certificate.boosterDoses?.length || 1}
+                      >
+                        <p className="c7">
+                          <span className="c0">{certificate.gender}</span>
+                        </p>
+                      </td>
+                    </>
+                  )}
+                  <td className="c11" colSpan={1}>
+                    <p className="c10">
+                      <span className="c0">
+                        {certificate.boosterDoses!.length === 1
+                          ? "Booster Dose"
+                          : `Booster Dose ${index + 1}`}
+                      </span>
+                    </p>
+                  </td>
+                  <td className="c43" colSpan={1}>
+                    <p className="c2">
+                      <span className="c0">✓</span>
+                    </p>
+                  </td>
+                  <td className="c75" colSpan={1}>
+                    <p className="c10">
+                      <span className="c0">
+                        Given Date:{" "}
+                        {formatDate(booster.dateAdministered, "dd/MM/yyyy")}
+                      </span>
+                    </p>
+                  </td>
+                </tr>
+              ))}
+
             <tr className="c80">
               <td className="c32" colSpan={1} rowSpan={1}>
                 <p className="c10">
@@ -407,19 +366,18 @@ export default function VaccinationCertificatePrint({
         <p className="c6">
           <span className="c0"></span>
         </p>
-        <p className="c20">
-          <span className="c0">
-            &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Above mentioned Bangladeshi
-            resident has completed his/her{" "}
-            <span className="underline">{certificate.vaccine.name}</span>
-          </span>
-        </p>
-        <p className="c20">
-          <span className="c0">
-            vaccination DD/MM/Year from Popular Medical centre and Hospital,
-            Sylhet.
-          </span>
-        </p>
+        {certificate.vaccine.totalDose === certificate.vaccinations.length && (
+          <p className="c20">
+            <span className="c0">
+              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Above mentioned
+              Bangladeshi resident has completed{" "}
+              {certificate.gender === "MALE" ? "his" : "her"}{" "}
+              <span className="underline">{certificate.vaccine.name}</span>{" "}
+              vaccination DD/MM/Year from Popular Medical centre and Hospital,
+              Sylhet.
+            </span>
+          </p>
+        )}
         <p className="c20 c57">
           <span className="c0"></span>
         </p>
