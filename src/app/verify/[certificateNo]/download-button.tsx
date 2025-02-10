@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 interface Certificate {
   id: string;
@@ -37,43 +37,17 @@ interface DownloadButtonProps {
   certificate: Certificate;
 }
 
-export default function DownloadButton({ certificate }: DownloadButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleDownload = async () => {
-    try {
-      setIsLoading(true);
-      const element = document.getElementById("certificate-print");
-      if (!element) return;
-
-      // Dynamically import html2pdf only when needed
-      const html2pdf = (await import("html2pdf.js")).default;
-
-      const opt = {
-        margin: 1,
-        filename: `vaccination-certificate-${certificate.certificateNo}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
-    } catch (error) {
-      console.error("Failed to generate PDF:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function DownloadButton({}: DownloadButtonProps) {
+  const { certificateNo } = useParams();
   return (
-    <Button
-      onClick={handleDownload}
-      variant="outline"
-      className="flex items-center gap-2"
-      disabled={isLoading}
+    <Link
+      href={`/verify/${certificateNo}/download`}
+      className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200"
+      style={{ height: "38px" }}
+      aria-label="Download PDF certificate"
     >
       <DownloadIcon className="h-4 w-4" />
-      {isLoading ? "Generating PDF..." : "Download PDF"}
-    </Button>
+      <span className="text-sm font-medium">Download PDF</span>
+    </Link>
   );
 }
