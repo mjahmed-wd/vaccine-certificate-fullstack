@@ -42,7 +42,7 @@ const formSchema = z.object({
   permanentAddress: z.string().min(1, "Permanent address is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
   nidNumber: z.string().optional(),
-  passportNumber: z.string().optional(),
+  passportNumber: z.string().min(1, "Passport number is required"),
   nationality: z.string().min(1, "Nationality is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
   gender: z.enum(["MALE", "FEMALE", "OTHER"]),
@@ -130,7 +130,7 @@ export function CreateCertificateForm() {
       phoneNumber: "",
       nidNumber: "",
       passportNumber: "",
-      nationality: "",
+      nationality: "Bangladeshi",
       dateOfBirth: "",
       gender: "MALE",
       vaccineId: "",
@@ -409,7 +409,7 @@ export function CreateCertificateForm() {
             name="vaccineId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Vaccine</FormLabel>
+                <FormLabel>Vaccine <span className="text-red-500">*</span></FormLabel>
                 <Select
                   onValueChange={(value) => {
                     field.onChange(value);
@@ -447,7 +447,7 @@ export function CreateCertificateForm() {
               name="providerId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Provider</FormLabel>
+                  <FormLabel>Provider <span className="text-red-500">*</span></FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -755,7 +755,7 @@ export function CreateCertificateForm() {
                 name="patientName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Patient Name</FormLabel>
+                    <FormLabel>Patient Name <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter patient name" {...field} />
                     </FormControl>
@@ -769,7 +769,7 @@ export function CreateCertificateForm() {
                 name="fatherName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Father&apos;s Name</FormLabel>
+                    <FormLabel>Father&apos;s Name <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter father&apos;s name" {...field} />
                     </FormControl>
@@ -783,7 +783,7 @@ export function CreateCertificateForm() {
                 name="motherName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mother&apos;s Name</FormLabel>
+                    <FormLabel>Mother&apos;s Name <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter mother&apos;s name" {...field} />
                     </FormControl>
@@ -797,7 +797,7 @@ export function CreateCertificateForm() {
                 name="permanentAddress"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Permanent Address</FormLabel>
+                    <FormLabel>Permanent Address <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter permanent address" {...field} />
                     </FormControl>
@@ -811,7 +811,7 @@ export function CreateCertificateForm() {
                 name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
+                    <FormLabel>Phone Number <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter phone number" {...field} />
                     </FormControl>
@@ -839,7 +839,7 @@ export function CreateCertificateForm() {
                 name="passportNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Passport Number</FormLabel>
+                    <FormLabel>Passport Number <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Enter passport number" {...field} />
                     </FormControl>
@@ -848,7 +848,7 @@ export function CreateCertificateForm() {
                 )}
               />
 
-              <FormField
+              {/* <FormField
                 control={form.control}
                 name="nationality"
                 render={({ field }) => (
@@ -860,14 +860,14 @@ export function CreateCertificateForm() {
                     <FormMessage />
                   </FormItem>
                 )}
-              />
+              /> */}
 
               <FormField
                 control={form.control}
                 name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
+                    <FormLabel>Date of Birth <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
@@ -881,7 +881,7 @@ export function CreateCertificateForm() {
                 name="gender"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Gender</FormLabel>
+                    <FormLabel>Gender <span className="text-red-500">*</span></FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -924,7 +924,7 @@ export function CreateCertificateForm() {
             name="dateAdministered"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date Administered</FormLabel>
+                <FormLabel>Date Administered <span className="text-red-500">*</span></FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>
