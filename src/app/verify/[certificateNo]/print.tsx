@@ -1,7 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import { encryptText } from "@/lib/crypto";
 import { formatDate } from "date-fns";
+import QRCode from "react-qr-code";
 
 interface Certificate {
   id: string;
@@ -55,6 +57,9 @@ interface VaccinationCertificatePrintProps {
 export default function VaccinationCertificatePrint({
   certificate,
 }: VaccinationCertificatePrintProps) {
+  const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${encryptText(
+    certificate.certificateNo.toString()
+  )}`;
   return (
     <div
       id="certificate-print"
@@ -378,30 +383,31 @@ export default function VaccinationCertificatePrint({
             </span>
           </p>
         )}
-        <p className="c20 c57">
-          <span className="c0"></span>
-        </p>
-        <p className="c20 c57">
-          <span className="c0"></span>
-        </p>
-        <p className="c20">
-          <span className="c0">
-            This certification is issued for acknowledgement to respective
-            authority.
-          </span>
-        </p>
-        <p className="c20">
-          <span className="c0">(Uploaded in website: </span>
-          <span className="c73">
-            <a
-              className="c40"
-              href="https://www.google.com/url?q=http://www.popularsylhet.com&amp;sa=D&amp;source=editors&amp;ust=1739210034126707&amp;usg=AOvVaw2SYQ0XBiCbDyiad1eGkN5z"
-            >
-              www.popularsylhet.com
-            </a>
-          </span>
-          <span className="c0">)</span>
-        </p>
+        <div className="flex flex-col items-center gap-4 mt-4">
+          <div className="flex items-center justify-center">
+            <QRCode value={qrValue} size={128} />
+          </div>
+          <div>
+            <p className="c20">
+              <span className="c0">
+                This certification is issued for acknowledgement to respective
+                authority.
+              </span>
+            </p>
+            <p className="c20">
+              <span className="c0">(Uploaded in website: </span>
+              <span className="c73">
+                <a
+                  className="c40"
+                  href="https://www.google.com/url?q=http://www.popularsylhet.com&amp;sa=D&amp;source=editors&amp;ust=1739210034126707&amp;usg=AOvVaw2SYQ0XBiCbDyiad1eGkN5z"
+                >
+                  www.popularsylhet.com
+                </a>
+              </span>
+              <span className="c0">)</span>
+            </p>
+          </div>
+        </div>
         <p className="c6">
           <span className="c0"></span>
         </p>
