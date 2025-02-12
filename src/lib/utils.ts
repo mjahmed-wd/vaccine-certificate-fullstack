@@ -32,3 +32,12 @@ export const checkPaymentStatus = () => {
     }
   }
 };
+
+export const formatCertificateNumber = (number: number | string) => {
+  // Ensure the number is padded to a minimum of 6 digits
+  return `P-${String(number).padStart(6, "0")}`;
+};
+
+export const getOriginalCertificateNumber = (certificateNo: string) => {
+  return Number(certificateNo.replace("P-", ""));
+};

@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { formatCertificateNumber } from "@/lib/utils";
 
 export type Certificate = {
   id: string;
@@ -57,6 +58,10 @@ export const columns: ColumnDef<Certificate>[] = [
   {
     accessorKey: "certificateNo",
     header: "Certificate No",
+    cell: ({ row }) => {
+      const certificateNo = row.getValue("certificateNo");
+      return formatCertificateNumber(certificateNo as number);
+    },
   },
   {
     accessorKey: "patientName",

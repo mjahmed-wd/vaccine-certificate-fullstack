@@ -27,6 +27,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { getVaccines, type Vaccine, getVaccineById } from "@/lib/api/vaccines";
 import { type Certificate } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { getOriginalCertificateNumber } from "@/lib/utils";
 
 interface VaccineWithProviders extends Vaccine {
   providers: Array<{
@@ -166,6 +167,8 @@ export function CreateCertificateForm() {
       return;
     }
 
+    const originalCertificateNumber = getOriginalCertificateNumber(previousNo);
+
     setIsValidatingCertificate(true);
     setValidationError(null);
     setPreviousCertificateDetails(null);
@@ -173,7 +176,7 @@ export function CreateCertificateForm() {
 
     try {
       const certificateResponse = await fetch(
-        `/api/certificates/by-number/${parseInt(previousNo, 10)}`
+        `/api/certificates/by-number/${parseInt(originalCertificateNumber.toString(), 10)}`
       );
       const certificateData = await certificateResponse.json();
       if (certificateData.error) {

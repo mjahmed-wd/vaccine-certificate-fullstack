@@ -39,7 +39,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-gradient-to-r from-green-900 to-green-800 shadow-xl">
+      <nav className="bg-gradient-to-r from-green-900 to-green-800 shadow-xl print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo and Title - Left Side */}

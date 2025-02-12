@@ -20,6 +20,16 @@ export interface CertificateWithDetails extends Certificate {
       id: string;
       name: string;
     };
+    boosterDoses?: Array<{
+      id: string;
+      dateAdministered: string;
+      vaccinationCenter: string;
+      vaccinatedByName: string;
+      provider: {
+        id: string;
+        name: string;
+      };
+    }>;
     vaccinatedBy: {
       firstName: string;
       lastName: string;

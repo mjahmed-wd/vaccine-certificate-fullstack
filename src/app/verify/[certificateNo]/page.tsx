@@ -4,6 +4,7 @@ import VaccinationCertificatePrint from "./print";
 import PrintButton from "./print-button";
 import DownloadButton from "./download-button";
 import { decryptNumber } from "@/lib/crypto";
+import { formatCertificateNumber } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Verify Certificate",
@@ -137,14 +138,18 @@ export default async function VerifyCertificatePage({
 
   return (
     <div className="">
-      <VaccinationCertificatePrint certificate={certificate} isShowOnScreen={false} />
+      <VaccinationCertificatePrint
+        certificate={certificate}
+        isShowOnScreen={false}
+      />
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white print:hidden">
         <div className="container mx-auto py-10">
           <div className="mb-8">
             <div className="text-center bg-white rounded-xl shadow-sm border p-8 hover:shadow-md transition-all duration-300">
               <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent bg-[length:200%_200%] animate-[gradient_6s_ease-in-out_infinite]">
-                Certificate #{certificate.certificateNo}
+                Certificate #
+                {formatCertificateNumber(certificate.certificateNo)}
               </h1>
               <p className="text-gray-600 mt-2">
                 Vaccination Certificate Verification
@@ -515,7 +520,7 @@ export default async function VerifyCertificatePage({
                                 )}
                               </dd>
                             </div>
-                          
+
                             <div className="space-y-1">
                               <dt className="text-sm font-medium text-purple-800">
                                 Provider
@@ -524,7 +529,7 @@ export default async function VerifyCertificatePage({
                                 {booster.provider?.name}
                               </dd>
                             </div>
-                          
+
                             <div className="space-y-1">
                               <dt className="text-sm font-medium text-purple-800">
                                 Vaccination Center
