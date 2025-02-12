@@ -59,15 +59,16 @@ export default function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center space-x-3 mb-12">
             <div>
-              <h1 className="text-2xl font-bold">Popular Medical Centre</h1>
-              <p className="text-sm opacity-90">& Hospital Sylhet</p>
+              <h1 className="text-2xl font-bold text-white">
+                Popular Medical Centre & Hospital Sylhet
+              </h1>
             </div>
           </div>
           <div className="space-y-6">
-            <h2 className="text-3xl font-bold">
+            <h2 className="text-3xl font-bold text-white">
               Vaccine Certificate Management System
             </h2>
-            <p className="text-lg opacity-90">
+            <p className="text-lg opacity-90 text-white">
               A state-of-the-art digital platform for managing vaccination
               records and certificates.
             </p>
@@ -89,8 +90,10 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Trusted Healthcare</h3>
-                  <p className="opacity-75 text-sm">
+                  <h3 className="font-semibold text-white">
+                    Trusted Healthcare
+                  </h3>
+                  <p className="opacity-75 text-sm text-white">
                     Providing quality healthcare services since 2005
                   </p>
                 </div>
@@ -112,8 +115,10 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold">Digital Innovation</h3>
-                  <p className="opacity-75 text-sm">
+                  <h3 className="font-semibold text-white">
+                    Digital Innovation
+                  </h3>
+                  <p className="opacity-75 text-sm text-white">
                     Modern solutions for healthcare management
                   </p>
                 </div>
@@ -121,9 +126,9 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-        <div className="relative z-10 text-sm opacity-75">
-          <p>Sobhanighat, Sylhet | Phone: 09636772211</p>
-          <p>Email: popularsylhet2005@gmail.com</p>
+        <div className="relative z-10 text-sm opacity-75 text-white">
+          <p className="text-white">Sobhanighat, Sylhet | Phone: 09636772211</p>
+          <p className="text-white">Email: popularsylhet2005@gmail.com</p>
         </div>
       </div>
 

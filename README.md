@@ -1,36 +1,179 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vaccine Certificate Management System
 
-## Getting Started
+A modern web application for managing vaccine certificates, built with Next.js, Prisma, and PostgreSQL.
 
-First, run the development server:
+## 🚀 Quick Start with Docker
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Prerequisites
+- Docker and Docker Compose installed on your system
+- Git (for cloning the repository)
+
+### Development Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd vaccine-certificate
+   ```
+
+2. **Environment Setup**
+   - Copy the example environment file:
+     ```bash
+     cp .env.example .env
+     ```
+   - The default environment variables should work out of the box with Docker:
+     ```env
+     NEXTAUTH_SECRET="jgdsWy8iXGaz/hpyotIhAQKtATY0+1VzlQl07QG4xk4="
+     NEXTAUTH_URL="http://localhost:3000"
+     NEXT_PUBLIC_APP_URL="http://localhost:3000"
+     
+     POSTGRES_USER="postgres"
+     POSTGRES_PASSWORD="postgres"
+     POSTGRES_DB="postgres"
+     DATABASE_URL="postgresql://postgres:postgres@postgres:5432/postgres?schema=public"
+     ```
+
+3. **Build and Start the Development Environment**
+   ```bash
+   # Using the npm script (recommended)
+   npm run docker:compose:dev
+
+   # Or manually
+   docker compose down && docker compose up -d --build
+   ```
+
+4. **Initialize the Database**
+   ```bash
+   # Run database seed
+   docker exec frontend-dev npx prisma db seed
+   ```
+
+### Production Deployment
+
+1. **Set Production Environment Variables**
+   - Create a production environment file:
+     ```bash
+     cp .env .env.production
+     ```
+   - Update the following variables in `.env.production`:
+     ```env
+     NODE_ENV=production
+     NEXTAUTH_URL="https://your-domain.com"
+     NEXT_PUBLIC_APP_URL="https://your-domain.com"
+     ```
+
+2. **Build and Start Production Environment**
+   ```bash
+   # Using the npm script (recommended)
+   npm run docker:compose:prod
+
+   # Or manually
+   docker compose -f docker-compose.prod.yml up -d --build
+   ```
+
+3. **Verify Production Setup**
+   ```bash
+   # Check container status
+   docker compose -f docker-compose.prod.yml ps
+   
+   # Check logs
+   docker compose -f docker-compose.prod.yml logs frontend
+   ```
+
+4. **Access the Application**
+   - Development: [http://localhost:3000](http://localhost:3000)
+   - Production: https://your-domain.com
+   - Use the following credentials to log in:
+
+     **Admin User:**
+     - Username: `admin`
+     - Password: `admin123`
+
+     **Technician User:**
+     - Username: `tech`
+     - Password: `admin123`
+
+## 🛠 Tech Stack
+
+- **Frontend:**
+  - Next.js 15.1.6
+  - React 19
+  - TailwindCSS
+  - Shadcn UI Components
+  - React Hook Form
+  - Zod Validation
+
+- **Backend:**
+  - Next.js API Routes
+  - Prisma ORM
+  - PostgreSQL Database
+  - NextAuth.js for Authentication
+
+- **Development:**
+  - TypeScript
+  - Docker
+  - ESLint
+  - Prettier
+
+## 📁 Project Structure
+
+```
+vaccine-certificate/
+├── src/
+│   ├── app/              # Next.js 13+ App Router
+│   ├── components/       # Reusable UI components
+│   ├── lib/             # Utility functions and shared logic
+│   └── types/           # TypeScript type definitions
+├── prisma/
+│   ├── schema.prisma    # Database schema
+│   └── seed.ts         # Database seeding script
+├── public/             # Static assets
+├── docker-compose.yml  # Docker composition file
+└── Dockerfile         # Docker build instructions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🔑 Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- User Authentication (Admin & Technician roles)
+- Vaccine Certificate Management
+- QR Code Generation for Certificates
+- Certificate Verification System
+- Responsive Design
+- Dark/Light Mode Support
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛟 Troubleshooting
 
-## Learn More
+### Common Issues
 
-To learn more about Next.js, take a look at the following resources:
+1. **Container not starting:**
+   ```bash
+   # Check container logs
+   docker compose logs frontend
+   docker compose logs postgres
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Database connection issues:**
+   ```bash
+   # Restart the containers
+   docker compose down
+   docker compose up -d
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Reset Database:**
+   ```bash
+   # Reset and reseed the database
+   docker exec frontend-dev npx prisma db push --force-reset
+   docker exec frontend-dev npx prisma db seed
+   ```
 
-## Deploy on Vercel
+## 🤝 Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

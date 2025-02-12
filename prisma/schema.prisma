@@ -1,10 +1,10 @@
 generator client {
     provider      = "prisma-client-js"
-    binaryTargets = ["native", "debian-openssl-1.0.x", "darwin-arm64"]
+    binaryTargets = ["native", "debian-openssl-1.0.x", "darwin-arm64", "linux-musl-arm64-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "mysql"
+    provider = "postgresql"
     url      = env("DATABASE_URL")
 }
 
@@ -34,14 +34,14 @@ model Vaccine {
 }
 
 model VaccineProvider {
-    id                String              @id @default(uuid())
-    name              String
-    vaccineId         String
-    createdAt         DateTime            @default(now())
-    updatedAt         DateTime            @updatedAt
-    vaccine           Vaccine             @relation(fields: [vaccineId], references: [id])
+    id                 String              @id @default(uuid())
+    name               String
+    vaccineId          String
+    createdAt          DateTime            @default(now())
+    updatedAt          DateTime            @updatedAt
+    vaccine            Vaccine             @relation(fields: [vaccineId], references: [id])
     vaccinationRecords VaccinationRecord[]
-    boosterDoses      BoosterDose[]
+    boosterDoses       BoosterDose[]
 
     @@index([vaccineId])
 }
@@ -76,7 +76,7 @@ model Certificate {
 }
 
 model VaccinationRecord {
-    id                String   @id @default(uuid())
+    id                String          @id @default(uuid())
     certificateId     String
     vaccineId         String
     vaccineName       String
@@ -87,8 +87,8 @@ model VaccinationRecord {
     vaccinatedByName  String
     providerId        String
     provider          VaccineProvider @relation(fields: [providerId], references: [id])
-    createdAt         DateTime @default(now())
-    updatedAt         DateTime @updatedAt
+    createdAt         DateTime        @default(now())
+    updatedAt         DateTime        @updatedAt
 
     certificate Certificate @relation(fields: [certificateId], references: [id])
     vaccine     Vaccine     @relation(fields: [vaccineId], references: [id])
@@ -100,7 +100,7 @@ model VaccinationRecord {
 }
 
 model BoosterDose {
-    id                String   @id @default(uuid())
+    id                String          @id @default(uuid())
     certificateId     String
     vaccineId         String
     dateAdministered  DateTime
@@ -109,8 +109,8 @@ model BoosterDose {
     vaccinatedByName  String
     providerId        String
     provider          VaccineProvider @relation(fields: [providerId], references: [id])
-    createdAt         DateTime @default(now())
-    updatedAt         DateTime @updatedAt
+    createdAt         DateTime        @default(now())
+    updatedAt         DateTime        @updatedAt
 
     certificate Certificate @relation(fields: [certificateId], references: [id])
     vaccine     Vaccine     @relation(fields: [vaccineId], references: [id])
