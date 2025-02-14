@@ -25,9 +25,29 @@ import {
 import { createCertificate } from "@/lib/api/certificates";
 import { useToast } from "@/components/ui/use-toast";
 import { getVaccines, type Vaccine, getVaccineById } from "@/lib/api/vaccines";
-import { type Certificate } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { getOriginalCertificateNumber } from "@/lib/utils";
+
+interface BaseCertificate {
+  id: string;
+  certificateNo: number;
+  nidNumber?: string | null;
+  passportNumber?: string | null;
+  nationality: string;
+  patientName: string;
+  fatherName: string;
+  motherName: string;
+  permanentAddress: string;
+  phoneNumber: string;
+  dateOfBirth: Date;
+  gender: string;
+  vaccineId: string;
+  doseNumber: number;
+  dateAdministered: Date;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 interface VaccineWithProviders extends Vaccine {
   providers: Array<{
@@ -62,7 +82,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface PreviousCertificateDetails extends Certificate {
+interface PreviousCertificateDetails extends BaseCertificate {
   vaccine?: {
     name: string;
   };

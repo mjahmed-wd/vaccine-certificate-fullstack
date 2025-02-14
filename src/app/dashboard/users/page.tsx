@@ -1,8 +1,19 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Role } from "@prisma/client";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+type Role = "ADMIN" | "TECHNICIAN";
 
 interface User {
   id: string;
@@ -15,136 +26,121 @@ interface User {
 }
 
 export default function UsersPage() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/users')
-      .then(res => res.json())
-      .then(data => {
+    fetch("/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          toast({
+            title: "Error",
+            description: data.error,
+            variant: "destructive",
+          });
+          return;
+        }
         setUsers(data);
         setIsLoading(false);
       })
-      .catch(error => {
-        console.error('Error loading users:', error);
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to load users",
+          variant: "destructive",
+        });
         setIsLoading(false);
       });
-  }, []);
+  }, [toast]);
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/users/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to delete user");
+      }
+
+      setUsers(users.filter((user) => user.id !== id));
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8">
-      <div className="sm:flex sm:items-center mb-8">
-        <div className="sm:flex-auto">
-          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-          <p className="mt-2 text-md text-gray-600">
-            Manage all registered users and their permissions within the platform.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <button
-            type="button"
-            onClick={() => router.push('/dashboard/users/create')}
-            className="inline-flex items-center justify-center rounded-lg transform transition-all duration-200 ease-in-out 
-                       bg-[#007C02] hover:bg-[#007C02]/90 px-6 py-3 text-sm font-semibold text-white shadow-sm
-                       focus:outline-none focus:ring-2 focus:ring-[#007C02] focus:ring-offset-2"
-          >
-            <span className="mr-2">+</span> Create New User
-          </button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold tracking-tight">Users</h2>
+        <Button onClick={() => router.push("/dashboard/users/create")}>
+          Add User
+        </Button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 ease-in-out">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  User
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Role
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Center
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Contact
-                </th>
-                <th scope="col" className="px-6 py-4 text-right text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center">
-                    <div className="flex justify-center items-center space-x-2">
-                      <div className="animate-spin h-8 w-8 border-4 border-[#007C02] rounded-full border-t-transparent"></div>
-                      <span className="text-gray-600">Loading users...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                    No users found in the system.
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr 
-                    key={user.id} 
-                    className="hover:bg-gray-50 transition-colors duration-200 ease-in-out cursor-pointer"
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Username</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Center</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>
+                  {user.firstName} {user.lastName}
+                </TableCell>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.role}</TableCell>
+                <TableCell>{user.center}</TableCell>
+                <TableCell>{user.phone}</TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => router.push(`/dashboard/users/${user.id}`)}
+                    className="mr-2"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-[#007C02]/10 rounded-full flex items-center justify-center">
-                          <span className="text-[#007C02] font-medium">
-                            {user.firstName[0]}
-                            {user.lastName[0]}
-                          </span>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.firstName} {user.lastName}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            @{user.username}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.center}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.phone}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/dashboard/users/${user.id}`);
-                        }}
-                        className="text-[#007C02] hover:text-[#007C02]/90 transform transition-all duration-150 ease-in-out hover:translate-x-1"
-                      >
-                        Edit →
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDelete(user.id)}
+                  >
+                    Delete
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { type Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
@@ -15,7 +14,7 @@ export async function GET(request: Request) {
     const skip = page ? (parseInt(page, 10) - 1) * take : 0;
 
     // Build the where clause based on the search field and date range
-    let where: Prisma.CertificateWhereInput = {};
+    let where: Record<string, unknown> = {};
 
     // Add search criteria if provided
     if (field && query) {

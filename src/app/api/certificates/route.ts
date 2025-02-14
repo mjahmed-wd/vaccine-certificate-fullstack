@@ -188,7 +188,9 @@ export async function POST(request: Request) {
     }
 
     // Verify provider exists and is associated with the vaccine
-    const provider = vaccine.providers.find((p) => p.id === providerId);
+    const provider = vaccine.providers.find(
+      (p: { id: string }) => p.id === providerId
+    );
 
     if (!provider) {
       return NextResponse.json(
@@ -281,7 +283,16 @@ export async function POST(request: Request) {
             vaccinations: {
               create: [
                 // Include previous vaccination records
-                ...previousCertificate.vaccinations.map((v) => ({
+                ...previousCertificate.vaccinations.map((v: {
+                  vaccineId: string;
+                  vaccineName: string;
+                  doseNumber: number;
+                  dateAdministered: Date;
+                  vaccinationCenter: string;
+                  vaccinatedById: string;
+                  vaccinatedByName: string;
+                  providerId: string;
+                }) => ({
                   vaccineId: v.vaccineId,
                   vaccineName: v.vaccineName,
                   doseNumber: v.doseNumber,

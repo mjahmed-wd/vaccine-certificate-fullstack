@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Certificate, columns } from "./columns";
 import { DataTable } from "./data-table";
@@ -38,7 +38,7 @@ export default function CertificatesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchCertificates = async (page?: number, limit?: number) => {
+  const fetchCertificates = useCallback(async (page?: number, limit?: number) => {
     try {
       const response = await fetch(
         `/api/certificates?page=${page || currentPage}&limit=${limit || pageSize}`,
@@ -69,11 +69,11 @@ export default function CertificatesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchCertificates();
-  }, [currentPage, pageSize]);
+  }, [currentPage, fetchCertificates, pageSize]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim() && !fromDate && !toDate) {

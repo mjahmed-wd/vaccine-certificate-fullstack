@@ -1,17 +1,18 @@
-import { db } from "../../../lib/db";
+import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { Role } from "@prisma/client";
 
-const userSchema = z.object({
+const roleEnum = z.enum(["ADMIN", "TECHNICIAN"]);
+
+const userCreateSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.nativeEnum(Role),
+  role: roleEnum,
   center: z.string().min(1, 'Center is required'),
   phone: z.string().min(1, 'Phone number is required'),
 });
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
 
     // Parse and validate request body
     const body = await request.json();
-    const validatedData = userSchema.parse(body);
+    const validatedData = userCreateSchema.parse(body);
 
     // Check if username is already taken
     const existingUser = await db.user.findUnique({

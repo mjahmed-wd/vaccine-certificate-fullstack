@@ -18,42 +18,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Role } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/ui/use-toast";
 
-const userSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.nativeEnum(Role),
-  center: z.string().min(1, "Center is required"),
-  phone: z.string().min(1, "Phone number is required"),
+const formSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  role: z.enum(["ADMIN", "TECHNICIAN"]),
+  center: z.string().min(1, 'Center is required'),
+  phone: z.string().min(1, 'Phone number is required'),
 });
 
-type UserFormValues = z.infer<typeof userSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 export default function CreateUserPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       username: "",
       password: "",
-      role: Role.TECHNICIAN,
+      role: "TECHNICIAN",
       center: "",
       phone: "",
     },
   });
 
-  const onSubmit = async (data: UserFormValues) => {
+  const onSubmit = async (data: FormValues) => {
     try {
       const response = await fetch("/api/users", {
         method: "POST",
@@ -75,11 +74,10 @@ export default function CreateUserPage() {
 
       router.push("/dashboard/users");
       router.refresh();
-    } catch (err) {
+    } catch (error) {
       toast({
         title: "Error",
-        description:
-          err instanceof Error ? err.message : "Failed to create user",
+        description: error instanceof Error ? error.message : "Failed to create user",
         variant: "destructive",
       });
     }
@@ -93,7 +91,9 @@ export default function CreateUserPage() {
             <h3 className="text-lg font-medium leading-6 text-gray-900">
               Create User
             </h3>
-            <p className="mt-1 text-sm text-gray-600">Create a new user.</p>
+            <p className="mt-1 text-sm text-gray-600">
+              Add a new user to the system.
+            </p>
           </div>
         </div>
 
@@ -186,15 +186,15 @@ export default function CreateUserPage() {
                               <SelectContent>
                                 <SelectItem
                                   className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-                                  value={Role.TECHNICIAN}
+                                  value="ADMIN"
                                 >
-                                  Technician
+                                  Admin
                                 </SelectItem>
                                 <SelectItem
                                   className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-                                  value={Role.ADMIN}
+                                  value="TECHNICIAN"
                                 >
-                                  Admin
+                                  Technician
                                 </SelectItem>
                               </SelectContent>
                             </Select>
@@ -248,7 +248,7 @@ export default function CreateUserPage() {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={form.formState.isSubmitting}>
-                    Create User
+                    {form.formState.isSubmitting ? "Creating..." : "Create"}
                   </Button>
                 </div>
               </div>

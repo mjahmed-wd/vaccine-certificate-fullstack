@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Role } from "@prisma/client";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -25,20 +24,17 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 
-const userSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .optional(),
-  role: z.nativeEnum(Role),
-  center: z.string().min(1, "Center is required"),
-  phone: z.string().min(1, "Phone number is required"),
+const formSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters').optional(),
+  role: z.enum(["ADMIN", "TECHNICIAN"]),
+  center: z.string().min(1, 'Center is required'),
+  phone: z.string().min(1, 'Phone number is required'),
 });
 
-type UserFormValues = z.infer<typeof userSchema>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface EditUserFormProps {
   id: string;
@@ -49,8 +45,8 @@ export default function EditUserForm({ id }: EditUserFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
 
-  const form = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
   });
 
   // Load user data
@@ -80,7 +76,7 @@ export default function EditUserForm({ id }: EditUserFormProps) {
       });
   }, [id, form.reset, toast, form]);
 
-  const onSubmit = async (data: UserFormValues) => {
+  const onSubmit = async (data: FormValues) => {
     try {
       if (!data.password) {
         delete data.password;
@@ -228,15 +224,15 @@ export default function EditUserForm({ id }: EditUserFormProps) {
                               <SelectContent>
                                 <SelectItem
                                   className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-                                  value={Role.TECHNICIAN}
+                                  value="ADMIN"
                                 >
-                                  Technician
+                                  Admin
                                 </SelectItem>
                                 <SelectItem
                                   className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-                                  value={Role.ADMIN}
+                                  value="TECHNICIAN"
                                 >
-                                  Admin
+                                  Technician
                                 </SelectItem>
                               </SelectContent>
                             </Select>

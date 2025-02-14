@@ -1,17 +1,18 @@
-import { db } from "../../../../lib/db";
+import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../../lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { Role, Prisma } from "@prisma/client";
+
+const roleEnum = z.enum(["ADMIN", "TECHNICIAN"]);
 
 const userUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
-  role: z.nativeEnum(Role),
+  role: roleEnum,
   center: z.string().min(1, 'Center is required'),
   phone: z.string().min(1, 'Phone number is required'),
 });
@@ -89,25 +90,20 @@ export async function PUT(
       );
     }
 
-    // Prepare update data
-    const updateData: Prisma.UserUpdateInput = {
-      firstName: validatedData.firstName,
-      lastName: validatedData.lastName,
-      username: validatedData.username,
-      role: validatedData.role,
-      center: validatedData.center,
-      phone: validatedData.phone,
-    };
-
-    // Only update password if provided
-    if (validatedData.password) {
-      updateData.passwordHash = await bcrypt.hash(validatedData.password, 10);
-    }
-
     // Update user
     const user = await db.user.update({
       where: { id: id },
-      data: updateData,
+      data: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        username: validatedData.username,
+        role: validatedData.role,
+        center: validatedData.center,
+        phone: validatedData.phone,
+        ...(validatedData.password && {
+          passwordHash: await bcrypt.hash(validatedData.password, 10)
+        })
+      },
       select: {
         id: true,
         firstName: true,

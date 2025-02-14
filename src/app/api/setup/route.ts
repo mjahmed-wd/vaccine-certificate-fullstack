@@ -1,5 +1,4 @@
 import { db } from "../../../lib/db";
-import { Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
@@ -22,7 +21,7 @@ export async function POST() {
         lastName: "User",
         username: "admin",
         passwordHash: hashedPassword,
-        role: Role.ADMIN,
+        role: "ADMIN",
         center: "Main Center",
         phone: "1234567890",
       },

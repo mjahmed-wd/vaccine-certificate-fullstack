@@ -1,57 +1,64 @@
-FROM node:20.10-alpine AS base
+# Stage 1: Builder
+FROM node:20 AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat netcat-openbsd
+# Set working directory
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN npm install
+# Set build-time environment variables
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV SKIP_ENV_VALIDATION=1
+ENV NODE_ENV=production
+ENV DATABASE_URL="mysql://appuser:apppassword@mysql:3306/vaccine_db"
 
-# Development image
-FROM base AS dev
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Copy package files
+COPY package.json package-lock.json ./
 
-# Generate Prisma Client
+# Install dependencies
+RUN npm install --fetch-retries=5 --fetch-retry-factor=2 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
+
+RUN npm install --save-dev eslint
+
+# Copy Prisma schema
+COPY prisma ./prisma/
+
+# Generate Prisma client
 RUN npx prisma generate
 
-ENV CHOKIDAR_USEPOLLING=true
-ENV WATCHPACK_POLLING=true
+# Copy the rest of the application
+COPY . .
 
-# Production image
-FROM base AS prod
+# Build the Next.js application
+RUN npm run build
+
+# Stage 2: Production image
+FROM node:20-alpine AS production
+
+# Set working directory
 WORKDIR /app
 
-# Copy application files
-COPY . .
-COPY --from=deps /app/node_modules ./node_modules
-
-# Set build arguments
-ARG DATABASE_URL
-ARG NEXTAUTH_URL
-ARG NEXT_PUBLIC_APP_URL
-ARG NEXTAUTH_SECRET
-ARG NODE_ENV
-
-# Set environment variables
-ENV DATABASE_URL=${DATABASE_URL}
-ENV NEXTAUTH_URL=${NEXTAUTH_URL}
-ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-ENV NODE_ENV=${NODE_ENV}
+# Set production environment variables
+ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="mysql://appuser:apppassword@mysql:3306/vaccine_db"
 
-# Generate Prisma Client and build
-RUN npm install -g pnpm && \
-    npx prisma generate && \
-    npm run build
+# Copy package files
+COPY package.json package-lock.json ./
 
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Copy necessary files from builder
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Generate Prisma client in production
+RUN npx prisma generate
+
+# Expose the port the app runs on
 EXPOSE 3000
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
 
-CMD ["npm", "start"]
+# Start the application
+CMD ["node", "server.js"]

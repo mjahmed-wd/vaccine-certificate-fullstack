@@ -50,7 +50,9 @@ export async function POST(
     }
 
     // Validate dose number is sequential
-    const existingDoses = certificate.vaccinations.map((v) => v.doseNumber);
+    const existingDoses = certificate.vaccinations.map(
+      (v: { doseNumber: number }) => v.doseNumber
+    );
     const maxExistingDose = Math.max(...existingDoses, 0);
     if (body.doseNumber !== maxExistingDose + 1) {
       return NextResponse.json(
