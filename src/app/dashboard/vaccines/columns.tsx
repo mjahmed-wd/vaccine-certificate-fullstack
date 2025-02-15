@@ -1,14 +1,23 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
 import { DataTableRowActions } from "@/components/ui/data-table-row-actions";
+import { useSession } from "next-auth/react";
 
 export type Vaccine = {
   id: string;
   name: string;
   totalDose: number;
   providers: { id: string; name: string }[];
+};
+
+const ActionCell = ({ row }: { row: Row<Vaccine> }) => {
+  const session = useSession();
+  if (session.data?.user.role !== "ADMIN") {
+    return null;
+  }
+  return <DataTableRowActions row={row} />;
 };
 
 export const columns: ColumnDef<Vaccine>[] = [
@@ -56,6 +65,6 @@ export const columns: ColumnDef<Vaccine>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
+    cell: ({ row }) => <ActionCell row={row} />,
   },
 ]; 

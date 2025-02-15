@@ -31,12 +31,9 @@ export async function GET(
 ) {
   const id = (await params).id;
   try {
-    const accessCheck = await checkAdminAccess();
-    if (accessCheck) {
-      return NextResponse.json(
-        { error: accessCheck.error },
-        { status: accessCheck.status }
-      );
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const vaccine = await db.vaccine.findUnique({
