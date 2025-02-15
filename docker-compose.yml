@@ -21,6 +21,23 @@ services:
       retries: 5
       start_period: 20s
 
+  backup:
+    image: mysql:latest
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    command: |
+      /bin/bash -c '
+      while true; do
+        timestamp=$$(date +%Y%m%d_%H%M%S)
+        mysqldump -h mysql -u appuser -papppassword vaccine_db > /backups/backup_$$timestamp.sql
+        find /backups -name "backup_*.sql" -type f -mtime +7 -delete
+        sleep 3600
+      done
+      '
+    restart: always
 
 volumes:
   mysql_data: # Named volume for MySQL data
