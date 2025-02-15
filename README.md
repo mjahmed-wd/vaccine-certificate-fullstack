@@ -93,6 +93,10 @@ A modern web application for managing vaccine certificates, built with Next.js, 
      - Username: `tech`
      - Password: `admin123`
 
+     **Medical Officer User:**
+     - Username: `medical`
+     - Password: `admin123`
+
 ## 🛠 Tech Stack
 
 - **Frontend:**

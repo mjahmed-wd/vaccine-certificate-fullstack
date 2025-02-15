@@ -5,7 +5,7 @@ import { authOptions } from "../../../../lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-const roleEnum = z.enum(["ADMIN", "TECHNICIAN"]);
+const roleEnum = z.enum(["ADMIN", "TECHNICIAN", "MEDICAL_OFFICER"]);
 
 const userUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),

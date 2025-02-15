@@ -36,6 +36,19 @@ async function setup() {
       },
     });
 
+    // Create Medical Officer User
+    await prisma.user.create({
+      data: {
+        firstName: "Medical",
+        lastName: "Officer",
+        username: "medical",
+        role: "MEDICAL_OFFICER",
+        center: "Medical Center",
+        phone: "01700000003",
+        passwordHash: hashedPassword,
+      },
+    });
+
     // Create Vaccines with Providers
     const vaccine1 = await prisma.vaccine.create({
       data: {

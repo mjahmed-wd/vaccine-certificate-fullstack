@@ -29,7 +29,7 @@ const formSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   username: z.string().min(3, 'Username must be at least 3 characters'),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
-  role: z.enum(["ADMIN", "TECHNICIAN"]),
+  role: z.enum(["ADMIN", "TECHNICIAN", "MEDICAL_OFFICER"]),
   center: z.string().min(1, 'Center is required'),
   phone: z.string().min(1, 'Phone number is required'),
 });
@@ -233,6 +233,12 @@ export default function EditUserForm({ id }: EditUserFormProps) {
                                   value="TECHNICIAN"
                                 >
                                   Technician
+                                </SelectItem>
+                                <SelectItem
+                                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                                  value="MEDICAL_OFFICER"
+                                >
+                                  Medical Officer
                                 </SelectItem>
                               </SelectContent>
                             </Select>

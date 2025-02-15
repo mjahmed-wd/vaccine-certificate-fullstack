@@ -124,6 +124,7 @@ model BoosterDose {
 enum Role {
     ADMIN
     TECHNICIAN
+    MEDICAL_OFFICER
 }
 
 enum Gender {
