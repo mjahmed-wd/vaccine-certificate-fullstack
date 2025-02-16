@@ -80,43 +80,15 @@ export function DataTable<TData extends Certificate, TValue>({
     const doc = new jsPDF();
     let yPos = 15;
 
-    // Add hospital logo and header
-    doc.addImage("/popular-logo.png", "PNG", 14, yPos, 15, 15);
+    // Add hospital pad header
+    const pageWidth = doc.internal.pageSize.width;
+    const imageWidth = pageWidth * 0.9; // 90% of page width
+    const leftMargin = (pageWidth - imageWidth) / 2; // Center the image
+    doc.addImage("/pad-top.jpg", "JPEG", leftMargin, yPos, imageWidth, 40);
+    yPos += 45; // Adjust yPos after the header image
 
-    // Hospital name in large, bold text
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(
-      "POPULAR MEDICAL CENTRE & HOSPITAL",
-      doc.internal.pageSize.width / 2,
-      yPos + 10,
-      { align: "center" }
-    );
-
-    // Address and contact in smaller text
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    yPos += 15;
-    doc.text(
-      "Nayasarak Road, Sylhet, Bangladesh",
-      doc.internal.pageSize.width / 2,
-      yPos + 5,
-      { align: "center" }
-    );
-    doc.text(
-      "Phone: +880 821-725227",
-      doc.internal.pageSize.width / 2,
-      yPos + 10,
-      { align: "center" }
-    );
-    doc.text(
-      "Email: popularmedicalcentre@gmail.com",
-      doc.internal.pageSize.width / 2,
-      yPos + 15,
-      { align: "center" }
-    );
-
-    yPos += 25;
+    // Remove the horizontal line and adjust spacing
+    yPos += 5;
 
     // Report title
     doc.setFontSize(14);
