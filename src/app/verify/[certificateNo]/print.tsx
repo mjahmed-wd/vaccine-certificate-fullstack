@@ -76,7 +76,15 @@ export default function VaccinationCertificatePrint({
     >
       <div className="certificate-container">
         <img src="/pad-top.jpg" alt="Logo" className="logo" />
-
+        <hr className="border-t-2 border-black mt-2" />
+        <hr className="border-t-2 border-black" style={{ marginTop: "2px" }} />
+        {/* <img src="/pad-bar.jpg" alt="Bar" className="mt-2"/> */}
+        <h2
+          className="font-serif font-bold text-center text-black underline mb-4"
+          style={{ fontSize: "1.2rem" }}
+        >
+          Vaccination Certificate
+        </h2>
         {/* Single Combined Table */}
         <table className="certificate-table">
           <tbody>
@@ -93,23 +101,31 @@ export default function VaccinationCertificatePrint({
 
             {/* Beneficiary Details Section */}
             <tr className="section-header">
-              <td colSpan={8} className="text-black">Beneficiary Details</td>
+              <td colSpan={8} className="text-black">
+                Beneficiary Details
+              </td>
             </tr>
             <tr>
               <td className="label-cell text-black" colSpan={2}>
                 Name:
               </td>
-              <td colSpan={2} className="text-black">{certificate.patientName}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.patientName}
+              </td>
               <td className="label-cell text-black" colSpan={2}>
                 Father&apos;s Name:
               </td>
-              <td colSpan={2} className="text-black">{certificate.fatherName}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.fatherName}
+              </td>
             </tr>
             <tr>
               <td className="label-cell text-black" colSpan={2}>
                 Mother&apos;s Name:
               </td>
-              <td colSpan={2} className="text-black">{certificate.motherName}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.motherName}
+              </td>
               <td className="label-cell text-black" colSpan={2}>
                 Date of Birth:
               </td>
@@ -121,36 +137,50 @@ export default function VaccinationCertificatePrint({
               <td className="label-cell text-black" colSpan={2}>
                 Gender:
               </td>
-              <td colSpan={2} className="text-black">{certificate.gender}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.gender}
+              </td>
               <td className="label-cell text-black" colSpan={2}>
                 NID No:
               </td>
-              <td colSpan={2} className="text-black">{certificate.nidNumber}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.nidNumber}
+              </td>
             </tr>
             <tr>
               <td className="label-cell text-black" colSpan={2}>
                 Passport No:
               </td>
-              <td colSpan={2} className="text-black">{certificate.passportNumber}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.passportNumber}
+              </td>
               <td className="label-cell text-black" colSpan={2}>
                 Nationality:
               </td>
-              <td colSpan={2} className="text-black">{certificate.nationality}</td>
+              <td colSpan={2} className="text-black">
+                {certificate.nationality}
+              </td>
             </tr>
 
             {/* Vaccination Details Section */}
             <tr className="section-header">
-              <td colSpan={8} className="text-black">Vaccination Details</td>
+              <td colSpan={8} className="text-black">
+                Vaccination Details
+              </td>
             </tr>
             <tr>
               <td className="label-cell text-black" colSpan={2}>
                 Name of Vaccine:
               </td>
-              <td colSpan={2} className="text-black">{certificate.vaccine.name} (Pfizer)</td>
+              <td colSpan={2} className="text-black">
+                {certificate.vaccine.name} (Pfizer)
+              </td>
               <td className="label-cell text-black" colSpan={2}>
                 Vaccination Center:
               </td>
-              <td colSpan={2} className="text-black">Popular Medical Centre and Hospital.</td>
+              <td colSpan={2} className="text-black">
+                Popular Medical Centre and Hospital.
+              </td>
             </tr>
 
             {/* Regular Doses */}
@@ -166,7 +196,9 @@ export default function VaccinationCertificatePrint({
 
               return (
                 <tr key={`dose-pair-${index}`}>
-                  <td className="text-black" colSpan={1}>Dose {firstDoseNumber}</td>
+                  <td className="text-black" colSpan={1}>
+                    Dose {firstDoseNumber}
+                  </td>
                   <td className="text-center text-black" colSpan={1}>
                     {firstDose ? "✓" : "☐"}
                   </td>
@@ -178,7 +210,9 @@ export default function VaccinationCertificatePrint({
                   </td>
                   {showSecondDose ? (
                     <>
-                      <td className="text-black" colSpan={1}>Dose {secondDoseNumber}</td>
+                      <td className="text-black" colSpan={1}>
+                        Dose {secondDoseNumber}
+                      </td>
                       <td className="text-center text-black" colSpan={1}>
                         {secondDose ? "✓" : "☐"}
                       </td>
@@ -200,7 +234,8 @@ export default function VaccinationCertificatePrint({
             })}
 
             {/* Booster Doses Section */}
-            {certificate.boosterDoses && certificate.boosterDoses.length > 0 && 
+            {certificate.boosterDoses &&
+              certificate.boosterDoses.length > 0 &&
               Array.from({
                 length: Math.ceil(certificate.boosterDoses.length / 2),
               }).map((_, index) => {
@@ -208,11 +243,14 @@ export default function VaccinationCertificatePrint({
                 const secondDoseNumber = index * 2 + 2;
                 const firstDose = certificate.boosterDoses?.[index * 2];
                 const secondDose = certificate.boosterDoses?.[index * 2 + 1];
-                const showSecondDose = secondDoseNumber <= (certificate.boosterDoses?.length ?? 0);
+                const showSecondDose =
+                  secondDoseNumber <= (certificate.boosterDoses?.length ?? 0);
 
                 return (
                   <tr key={`booster-pair-${index}`}>
-                    <td className="text-black" colSpan={1}>Booster {firstDoseNumber}</td>
+                    <td className="text-black" colSpan={1}>
+                      Booster {firstDoseNumber}
+                    </td>
                     <td className="text-center text-black" colSpan={1}>
                       {firstDose ? "✓" : "☐"}
                     </td>
@@ -224,14 +262,19 @@ export default function VaccinationCertificatePrint({
                     </td>
                     {showSecondDose ? (
                       <>
-                        <td className="text-black" colSpan={1}>Booster {secondDoseNumber}</td>
+                        <td className="text-black" colSpan={1}>
+                          Booster {secondDoseNumber}
+                        </td>
                         <td className="text-center text-black" colSpan={1}>
                           {secondDose ? "✓" : "☐"}
                         </td>
                         <td className="text-black" colSpan={2}>
                           Given Date:{" "}
                           {secondDose?.dateAdministered
-                            ? formatDate(secondDose.dateAdministered, "dd/MM/yyyy")
+                            ? formatDate(
+                                secondDose.dateAdministered,
+                                "dd/MM/yyyy"
+                              )
                             : ""}
                         </td>
                       </>
@@ -240,14 +283,16 @@ export default function VaccinationCertificatePrint({
                     )}
                   </tr>
                 );
-              })
-            }
+              })}
 
             {/* Email Row */}
             <tr>
               <td colSpan={8} className="email-cell text-black">
                 E-mail:{" "}
-                <a href="mailto:popularsylhet2005@gmail.com" className="text-black">
+                <a
+                  href="mailto:popularsylhet2005@gmail.com"
+                  className="text-black"
+                >
                   popularsylhet2005@gmail.com
                 </a>
               </td>
