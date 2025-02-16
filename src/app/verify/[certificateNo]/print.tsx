@@ -82,95 +82,115 @@ export default function VaccinationCertificatePrint({
           <tbody>
             {/* Certificate Header */}
             <tr>
-              <td className="cert-no-cell" colSpan={4}>
+              <td className="cert-no-cell text-black" colSpan={4}>
                 Certificate No:{" "}
                 {formatCertificateNumber(certificate.certificateNo)}
               </td>
-              <td colSpan={4} className="date-cell">
+              <td colSpan={4} className="date-cell text-black">
                 Date: {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}
               </td>
             </tr>
 
             {/* Beneficiary Details Section */}
             <tr className="section-header">
-              <td colSpan={8}>Beneficiary Details</td>
+              <td colSpan={8} className="text-black">Beneficiary Details</td>
             </tr>
             <tr>
-              <td className="label-cell" colSpan={2}>
+              <td className="label-cell text-black" colSpan={2}>
                 Name:
               </td>
-              <td colSpan={2}>{certificate.patientName}</td>
-              <td className="label-cell" colSpan={2}>
+              <td colSpan={2} className="text-black">{certificate.patientName}</td>
+              <td className="label-cell text-black" colSpan={2}>
                 Father&apos;s Name:
               </td>
-              <td colSpan={2}>{certificate.fatherName}</td>
+              <td colSpan={2} className="text-black">{certificate.fatherName}</td>
             </tr>
             <tr>
-              <td className="label-cell" colSpan={2}>
+              <td className="label-cell text-black" colSpan={2}>
                 Mother&apos;s Name:
               </td>
-              <td colSpan={2}>{certificate.motherName}</td>
-              <td className="label-cell" colSpan={2}>
+              <td colSpan={2} className="text-black">{certificate.motherName}</td>
+              <td className="label-cell text-black" colSpan={2}>
                 Date of Birth:
               </td>
-              <td colSpan={2}>
+              <td colSpan={2} className="text-black">
                 {formatDate(certificate.dateOfBirth, "dd/MM/yyyy")}
               </td>
             </tr>
             <tr>
-              <td className="label-cell" colSpan={2}>
+              <td className="label-cell text-black" colSpan={2}>
                 Gender:
               </td>
-              <td colSpan={2}>{certificate.gender}</td>
-              <td className="label-cell" colSpan={2}>
+              <td colSpan={2} className="text-black">{certificate.gender}</td>
+              <td className="label-cell text-black" colSpan={2}>
                 NID No:
               </td>
-              <td colSpan={2}>{certificate.nidNumber}</td>
+              <td colSpan={2} className="text-black">{certificate.nidNumber}</td>
             </tr>
             <tr>
-              <td className="label-cell" colSpan={2}>
+              <td className="label-cell text-black" colSpan={2}>
                 Passport No:
               </td>
-              <td colSpan={2}>{certificate.passportNumber}</td>
-              <td className="label-cell" colSpan={2}>
+              <td colSpan={2} className="text-black">{certificate.passportNumber}</td>
+              <td className="label-cell text-black" colSpan={2}>
                 Nationality:
               </td>
-              <td colSpan={2}>{certificate.nationality}</td>
+              <td colSpan={2} className="text-black">{certificate.nationality}</td>
             </tr>
 
             {/* Vaccination Details Section */}
             <tr className="section-header">
-              <td colSpan={8}>Vaccination Details</td>
+              <td colSpan={8} className="text-black">Vaccination Details</td>
             </tr>
             <tr>
-              <td className="label-cell" colSpan={2}>
+              <td className="label-cell text-black" colSpan={2}>
                 Name of Vaccine:
               </td>
-              <td colSpan={2}>{certificate.vaccine.name} (Pfizer)</td>
-              <td className="label-cell" colSpan={2}>
+              <td colSpan={2} className="text-black">{certificate.vaccine.name} (Pfizer)</td>
+              <td className="label-cell text-black" colSpan={2}>
                 Vaccination Center:
               </td>
-              <td colSpan={2}>Popular Medical Centre and Hospital.</td>
+              <td colSpan={2} className="text-black">Popular Medical Centre and Hospital.</td>
             </tr>
 
             {/* Regular Doses */}
-            {Array.from({ length: Math.ceil(certificate.vaccine.totalDose / 2) }).map((_, index) => {
+            {Array.from({
+              length: Math.ceil(certificate.vaccine.totalDose / 2),
+            }).map((_, index) => {
               const firstDoseNumber = index * 2 + 1;
               const secondDoseNumber = index * 2 + 2;
               const firstDose = getVaccinationByDose(firstDoseNumber);
               const secondDose = getVaccinationByDose(secondDoseNumber);
-              const showSecondDose = secondDoseNumber <= certificate.vaccine.totalDose;
+              const showSecondDose =
+                secondDoseNumber <= certificate.vaccine.totalDose;
 
               return (
                 <tr key={`dose-pair-${index}`}>
-                  <td colSpan={1}>Dose {firstDoseNumber}</td>
-                  <td className="text-center" colSpan={1}>{firstDose ? "✓" : "☐"}</td>
-                  <td colSpan={2}>Given Date: {firstDose?.dateAdministered ? formatDate(firstDose.dateAdministered, "dd/MM/yyyy") : ""}</td>
+                  <td className="text-black" colSpan={1}>Dose {firstDoseNumber}</td>
+                  <td className="text-center text-black" colSpan={1}>
+                    {firstDose ? "✓" : "☐"}
+                  </td>
+                  <td className="text-black" colSpan={2}>
+                    Given Date:{" "}
+                    {firstDose?.dateAdministered
+                      ? formatDate(firstDose.dateAdministered, "dd/MM/yyyy")
+                      : ""}
+                  </td>
                   {showSecondDose ? (
                     <>
-                      <td colSpan={1}>Dose {secondDoseNumber}</td>
-                      <td className="text-center" colSpan={1}>{secondDose ? "✓" : "☐"}</td>
-                      <td colSpan={2}>Given Date: {secondDose?.dateAdministered ? formatDate(secondDose.dateAdministered, "dd/MM/yyyy") : ""}</td>
+                      <td className="text-black" colSpan={1}>Dose {secondDoseNumber}</td>
+                      <td className="text-center text-black" colSpan={1}>
+                        {secondDose ? "✓" : "☐"}
+                      </td>
+                      <td className="text-black" colSpan={2}>
+                        Given Date:{" "}
+                        {secondDose?.dateAdministered
+                          ? formatDate(
+                              secondDose.dateAdministered,
+                              "dd/MM/yyyy"
+                            )
+                          : ""}
+                      </td>
                     </>
                   ) : (
                     <td colSpan={4}></td>
@@ -179,37 +199,55 @@ export default function VaccinationCertificatePrint({
               );
             })}
 
-            {/* Booster Row */}
-            {(!certificate.boosterDoses || certificate.boosterDoses.length === 0) && (
-              <tr>
-                <td colSpan={1}>Booster</td>
-                <td className="text-center" colSpan={1}>☐</td>
-                <td colSpan={2}></td>
-                <td colSpan={4}></td>
-              </tr>
-            )}
-            {certificate.boosterDoses?.map((booster, index) => (
-              <tr key={`booster-${index}`}>
-                <td colSpan={1}>Booster {index + 1}</td>
-                <td className="text-center" colSpan={1}>✓</td>
-                <td colSpan={2}>Given Date: {formatDate(booster.dateAdministered, "dd/MM/yyyy")}</td>
-                {index % 2 === 0 && certificate.boosterDoses!.length > index + 1 ? (
-                  <>
-                    <td colSpan={1}>Booster {index + 2}</td>
-                    <td className="text-center" colSpan={1}>✓</td>
-                    <td colSpan={2}>Given Date: {formatDate(certificate.boosterDoses![index + 1].dateAdministered, "dd/MM/yyyy")}</td>
-                  </>
-                ) : (
-                  <td colSpan={4}></td>
-                )}
-              </tr>
-            ))}
+            {/* Booster Doses Section */}
+            {certificate.boosterDoses && certificate.boosterDoses.length > 0 && 
+              Array.from({
+                length: Math.ceil(certificate.boosterDoses.length / 2),
+              }).map((_, index) => {
+                const firstDoseNumber = index * 2 + 1;
+                const secondDoseNumber = index * 2 + 2;
+                const firstDose = certificate.boosterDoses?.[index * 2];
+                const secondDose = certificate.boosterDoses?.[index * 2 + 1];
+                const showSecondDose = secondDoseNumber <= (certificate.boosterDoses?.length ?? 0);
+
+                return (
+                  <tr key={`booster-pair-${index}`}>
+                    <td className="text-black" colSpan={1}>Booster {firstDoseNumber}</td>
+                    <td className="text-center text-black" colSpan={1}>
+                      {firstDose ? "✓" : "☐"}
+                    </td>
+                    <td className="text-black" colSpan={2}>
+                      Given Date:{" "}
+                      {firstDose?.dateAdministered
+                        ? formatDate(firstDose.dateAdministered, "dd/MM/yyyy")
+                        : ""}
+                    </td>
+                    {showSecondDose ? (
+                      <>
+                        <td className="text-black" colSpan={1}>Booster {secondDoseNumber}</td>
+                        <td className="text-center text-black" colSpan={1}>
+                          {secondDose ? "✓" : "☐"}
+                        </td>
+                        <td className="text-black" colSpan={2}>
+                          Given Date:{" "}
+                          {secondDose?.dateAdministered
+                            ? formatDate(secondDose.dateAdministered, "dd/MM/yyyy")
+                            : ""}
+                        </td>
+                      </>
+                    ) : (
+                      <td colSpan={4}></td>
+                    )}
+                  </tr>
+                );
+              })
+            }
 
             {/* Email Row */}
             <tr>
-              <td colSpan={8} className="email-cell">
+              <td colSpan={8} className="email-cell text-black">
                 E-mail:{" "}
-                <a href="mailto:popularsylhet2005@gmail.com">
+                <a href="mailto:popularsylhet2005@gmail.com" className="text-black">
                   popularsylhet2005@gmail.com
                 </a>
               </td>

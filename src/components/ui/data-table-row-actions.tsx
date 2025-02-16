@@ -62,13 +62,13 @@ export function DataTableRowActions<TData>({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted bg-transparent"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal className="h-4 w-4 text-black" />
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
+      <DropdownMenuContent align="end" className="w-[160px] bg-white border border-gray-300">
         <DropdownMenuItem
           onClick={() => router.push(`/dashboard/vaccines/${vaccine.id}`)}
         >

@@ -275,7 +275,7 @@ export function DataTable<TData extends Certificate, TValue>({
       {/* Pagination Section */}
       <div className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
         <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-black">
             Page {currentPage} of {pageCount} ({data.length} items)
           </div>
           <Select
@@ -283,14 +283,14 @@ export function DataTable<TData extends Certificate, TValue>({
             onValueChange={(value) => onPageSizeChange(Number(value))}
           >
             <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Select rows" />
+              <SelectValue placeholder="Select rows" className="text-black" />
             </SelectTrigger>
             <SelectContent>
               {[10, 50, 100, 500].map((size) => (
                 <SelectItem
                   key={size}
                   value={size.toString()}
-                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                  className="bg-background hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground text-black"
                 >
                   Show {size}
                 </SelectItem>
@@ -303,12 +303,11 @@ export function DataTable<TData extends Certificate, TValue>({
             onClick={handleDownloadPDF}
             variant="outline"
             size="icon"
-            className="h-9 w-9 hover:bg-[#007C02] hover:text-white transition-colors"
+            className="h-9 w-9 text-black hover:bg-[#007C02] hover:text-white transition-colors"
             title="Download PDF"
           >
             <Download className="h-4 w-4" />
           </Button>
-          Download PDF
         </div>
         <div className="flex items-center space-x-2">
           <Button
@@ -316,7 +315,7 @@ export function DataTable<TData extends Certificate, TValue>({
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="min-w-[80px] transition-transform duration-200 hover:scale-105"
+            className="min-w-[80px] text-black transition-transform duration-200 hover:scale-105 hover:text-white"
           >
             Previous
           </Button>
@@ -325,7 +324,7 @@ export function DataTable<TData extends Certificate, TValue>({
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === pageCount}
-            className="min-w-[80px] transition-transform duration-200 hover:scale-105"
+            className="min-w-[80px] text-black transition-transform duration-200 hover:scale-105 hover:text-white"
           >
             Next
           </Button>

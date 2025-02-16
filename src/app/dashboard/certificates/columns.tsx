@@ -94,8 +94,8 @@ export const columns: ColumnDef<Certificate>[] = [
       return (
         <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded ${
           isComplete 
-            ? "text-green-100 bg-green-600" 
-            : "text-red-100 bg-red-600"
+            ? "text-white bg-green-600" 
+            : "text-white bg-red-600"
         }`}>
           {doseCount} / {totalDoses}
         </span>
@@ -110,8 +110,8 @@ export const columns: ColumnDef<Certificate>[] = [
       return (
         <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded ${
           boosterCount > 0 
-            ? "text-green-100 bg-green-600" 
-            : "text-gray-100 bg-gray-600"
+            ? "text-white bg-green-600" 
+            : "text-white bg-gray-600"
         }`}>
           {boosterCount}
         </span>
@@ -146,21 +146,21 @@ export const columns: ColumnDef<Certificate>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <DotsHorizontalIcon className="h-4 w-4" />
+            <Button variant="ghost" className="h-8 w-8 p-0 text-black bg-transparent">
+              <DotsHorizontalIcon className="h-4 w-4 text-black" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="bg-white shadow-md rounded-md z-10"
+            className="bg-white shadow-md rounded-md z-10 border border-gray-300"
           >
             <Link href={`/dashboard/certificates/${certificate.id}`}>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer bg-white text-black hover:bg-gray-100">
                 View details
               </DropdownMenuItem>
             </Link>
             <Link href={`/dashboard/certificates/${certificate.id}/edit`}>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer bg-white text-black hover:bg-gray-100">
                 Edit
               </DropdownMenuItem>
             </Link>

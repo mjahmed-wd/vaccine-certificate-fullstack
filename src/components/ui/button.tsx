@@ -42,9 +42,34 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    let baseClasses = "rounded-md focus:outline-none"
+
+    // Handle variants
+    switch (variant) {
+      case "outline":
+        baseClasses += " border border-gray-300 bg-white"
+        break
+      // Add other variants as needed
+      default:
+        baseClasses += " bg-[#007C02] text-white"
+    }
+
+    // Handle sizes
+    switch (size) {
+      case "sm":
+        baseClasses += " px-3 py-1.5 text-sm"
+        break
+      case "icon":
+        baseClasses += " p-2"
+        break
+      // Add other sizes as needed
+      default:
+        baseClasses += " px-4 py-2"
+    }
+
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(baseClasses, className)}
         ref={ref}
         {...props}
       />

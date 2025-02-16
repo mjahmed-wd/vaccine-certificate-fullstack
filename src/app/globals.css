@@ -7,17 +7,89 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Print */
+.text-white{
+  color: #ffffff !important;
+}
+
+.text-black{
+  color: #000000 !important;
+}
+
+/* Header specific styles */
+header *,
+nav *,
+.text-right p.text-sm,
+.text-right p.text-xs {
+  color: #ffffff !important;
+}
+
+/* Login page left side styles */
+.bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] *,
+.bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] p,
+.bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] h1,
+.bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] h2,
+.bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] h3 {
+  color: #ffffff !important;
+}
+
+/* Force consistent input styling across devices */
+input,
+textarea,
+select {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+/* Force consistent text colors in tables and lists */
+table td,
+table th,
+p:not(.text-right p.text-sm, .text-right p.text-xs),
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span,
+div:not(header *, nav *, .bg-gradient-to-br.to-\[\#7ebd98\].from-\[\#1b7041\] *) {
+  color: #171717 !important;
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+  }
+  
+  * {
+    color: black !important;
+    background: white !important;
+  }
+  
+  input,
+  textarea,
+  select,
+  table td,
+  table th,
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  div {
+    color: black !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -47,7 +47,7 @@ export default function DownloadButton({}: DownloadButtonProps) {
       aria-label="Download PDF certificate"
     >
       <DownloadIcon className="h-4 w-4" />
-      <span className="text-sm font-medium">Download PDF</span>
+      <span className="text-sm font-medium text-white">Download PDF</span>
     </Link>
   );
 }

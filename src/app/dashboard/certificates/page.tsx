@@ -151,7 +151,7 @@ export default function CertificatesPage() {
                        bg-[#007C02] hover:bg-[#007C02]/90 px-6 py-3 text-sm font-semibold text-white shadow-sm
                        focus:outline-none focus:ring-2 focus:ring-[#007C02] focus:ring-offset-2"
           >
-            <span className="mr-2">+</span> New Certificate
+            <span className="mr-2 text-white">+</span> New Certificate
           </Link>
         </div>
       </div>
