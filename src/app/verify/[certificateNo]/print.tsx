@@ -380,8 +380,13 @@ export default function VaccinationCertificatePrint({
               Bangladeshi resident has completed{" "}
               {certificate.gender === "MALE" ? "his" : "her"}{" "}
               <span className="underline">{certificate.vaccine.name}</span>{" "}
-              vaccination DD/MM/Year from Popular Medical centre and Hospital,
-              Sylhet.
+              vaccination on{" "}
+              {formatDate(
+                certificate.vaccinations[certificate.vaccinations.length - 1]
+                  .dateAdministered,
+                "dd/MM/yyyy"
+              )}{" "}
+              from Popular Medical centre and Hospital, Sylhet.
             </span>
           </p>
         )}
