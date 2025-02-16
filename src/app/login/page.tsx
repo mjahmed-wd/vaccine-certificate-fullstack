@@ -127,8 +127,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="relative z-10 text-sm opacity-75 text-white">
-          <p className="text-white">Sobhanighat, Sylhet</p>
-          {/* <p className="text-white">Sobhanighat, Sylhet | Phone: 09636772211</p> */}
+          <p className="text-white">Sobhanighat, Sylhet | Phone: 09638009006</p>
           <p className="text-white">Email: popularsylhet2005@gmail.com</p>
         </div>
       </div>
