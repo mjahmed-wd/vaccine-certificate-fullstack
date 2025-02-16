@@ -1,10 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,11 +17,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createCertificate } from "@/lib/api/certificates";
 import { useToast } from "@/components/ui/use-toast";
-import { getVaccines, type Vaccine, getVaccineById } from "@/lib/api/vaccines";
-import { useSession } from "next-auth/react";
+import { createCertificate } from "@/lib/api/certificates";
+import { getVaccineById, getVaccines, type Vaccine } from "@/lib/api/vaccines";
 import { getOriginalCertificateNumber } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 interface BaseCertificate {
   id: string;
@@ -62,7 +62,7 @@ const formSchema = z.object({
   motherName: z.string().min(1, "Mother's name is required"),
   permanentAddress: z.string().min(1, "Permanent address is required"),
   phoneNumber: z.string().min(1, "Phone number is required"),
-  nidNumber: z.string().optional(),
+  nidNumber: z.string().min(1, "NID number is required"),
   passportNumber: z.string().min(1, "Passport number is required"),
   nationality: z.string().min(1, "Nationality is required"),
   dateOfBirth: z.string().min(1, "Date of birth is required"),
@@ -70,9 +70,7 @@ const formSchema = z.object({
   vaccineId: z.string().min(1, "Vaccine is required"),
   providerId: z.string().min(1, "Provider is required"),
   doseNumber: z.coerce.number().min(1, "Dose number is required"),
-  previousCertificateNo: z
-    .string()
-    .optional(),
+  previousCertificateNo: z.string().optional(),
   dateAdministered: z.string().min(1, "Date administered is required"),
   isBoosterDose: z.boolean().default(false),
 });
@@ -193,7 +191,10 @@ export function CreateCertificateForm() {
 
     try {
       const certificateResponse = await fetch(
-        `/api/certificates/by-number/${parseInt(originalCertificateNumber.toString(), 10)}`
+        `/api/certificates/by-number/${parseInt(
+          originalCertificateNumber.toString(),
+          10
+        )}`
       );
       const certificateData = await certificateResponse.json();
       if (certificateData.error) {
@@ -434,6 +435,20 @@ export function CreateCertificateForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {/* Validation Error Summary */}
+        {Object.keys(form.formState.errors).length > 0 && (
+          <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+            <h3 className="text-sm font-medium text-red-800 mb-2">Please fix the following errors:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <li key={field} className="text-sm text-red-600">
+                  {error?.message}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -895,7 +910,9 @@ export function CreateCertificateForm() {
                 name="nidNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>NID Number</FormLabel>
+                    <FormLabel>
+                      NID Number <span className="text-red-500">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Enter NID number" {...field} />
                     </FormControl>
