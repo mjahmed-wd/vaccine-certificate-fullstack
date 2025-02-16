@@ -72,9 +72,6 @@ const formSchema = z.object({
   doseNumber: z.coerce.number().min(1, "Dose number is required"),
   previousCertificateNo: z
     .string()
-    .refine((val) => !val || !isNaN(parseInt(val)), {
-      message: "Previous certificate number must be a valid number",
-    })
     .optional(),
   dateAdministered: z.string().min(1, "Date administered is required"),
   isBoosterDose: z.boolean().default(false),

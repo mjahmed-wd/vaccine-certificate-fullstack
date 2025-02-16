@@ -87,20 +87,67 @@ export async function PUT(
       },
     });
 
-    // Delete all existing providers for this vaccine
-    await db.vaccineProvider.deleteMany({
+    // Get existing providers
+    const existingProviders = await db.vaccineProvider.findMany({
       where: {
         vaccineId: id,
       },
     });
 
-    // Create all providers from the request
-    await db.vaccineProvider.createMany({
-      data: validatedData.providers.map((provider) => ({
-        name: provider.name,
-        vaccineId: id,
-      })),
-    });
+    // Create a map of existing providers by name for easy lookup
+    const existingProviderMap = new Map(
+      existingProviders.map(provider => [provider.name, provider])
+    );
+
+    // Process each provider in the request
+    for (const provider of validatedData.providers) {
+      const existingProvider = existingProviderMap.get(provider.name);
+      
+      if (!existingProvider) {
+        // If provider doesn't exist, create it
+        await db.vaccineProvider.create({
+          data: {
+            name: provider.name,
+            vaccineId: id,
+          },
+        });
+      }
+      // If provider exists, no need to update as only name is stored
+    }
+
+    // Delete providers that are no longer in the list
+    const newProviderNames = new Set(validatedData.providers.map(p => p.name));
+    const providersToDelete = existingProviders.filter(
+      provider => !newProviderNames.has(provider.name)
+    );
+
+    // Check if any providers to be deleted are in use
+    for (const provider of providersToDelete) {
+      const inUseCount = await db.vaccinationRecord.count({
+        where: {
+          providerId: provider.id,
+        },
+      });
+
+      if (inUseCount > 0) {
+        return NextResponse.json(
+          { 
+            error: "Cannot delete provider that is in use", 
+            details: `Provider "${provider.name}" is used in ${inUseCount} vaccination records`
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Safe to delete unused providers
+    for (const provider of providersToDelete) {
+      await db.vaccineProvider.delete({
+        where: {
+          id: provider.id,
+        },
+      });
+    }
 
     // Fetch the updated vaccine with providers
     const finalVaccine = await db.vaccine.findUnique({
