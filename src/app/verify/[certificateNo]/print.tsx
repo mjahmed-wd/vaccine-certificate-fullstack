@@ -2,6 +2,7 @@
 "use client";
 
 import { encryptText } from "@/lib/crypto";
+import { formatCertificateNumber } from "@/lib/utils";
 import { formatDate } from "date-fns";
 import QRCode from "react-qr-code";
 
@@ -62,378 +63,295 @@ export default function VaccinationCertificatePrint({
   const qrValue = `${process.env.NEXT_PUBLIC_APP_URL}/verify/${encryptText(
     certificate.certificateNo.toString()
   )}`;
+
+  // Helper function to find vaccination by dose number
+  const getVaccinationByDose = (doseNumber: number) => {
+    return certificate.vaccinations.find((v) => v.doseNumber === doseNumber);
+  };
+
   return (
     <div
       id="certificate-print"
       className={`${isShowOnScreen ? "block" : "hidden"} print:block`}
-      style={{ fontFamily: "Times New Roman" }}
     >
-      <div className="">
-        <img src="/pad-top.jpg" alt="Logo" />
+      <div className="certificate-container">
+        <img src="/pad-top.jpg" alt="Logo" className="logo" />
 
-        <hr className="border-t-2 border-black mt-2" />
-        <hr className="border-t-2 border-black" style={{ marginTop: "2px" }} />
-        {/* <img src="/pad-bar.jpg" alt="Bar" className="mt-2"/> */}
-        <h2
-          className="font-serif font-bold text-center text-black underline mb-4"
-          style={{ fontSize: "1.2rem" }}
-        >
-          Vaccination Certificate
-        </h2>
-        <table className="c13">
+        {/* Single Combined Table */}
+        <table className="certificate-table">
           <tbody>
-            <tr className="c55">
-              <td className="c67" colSpan={4} rowSpan={1}>
-                <p className="c23">
-                  <span className="c0">
-                    &nbsp;Certificate No: {certificate.certificateNo}
-                  </span>
-                </p>
-                <p className="c23 c24">
-                  <span className="c0"></span>
-                </p>
+            {/* Certificate Header */}
+            <tr>
+              <td className="cert-no-cell" colSpan={4}>
+                Certificate No:{" "}
+                {formatCertificateNumber(certificate.certificateNo)}
               </td>
-              <td className="c31" colSpan={1} rowSpan={1}>
-                <p className="c23">
-                  <span className="c0">
-                    &nbsp;Date:{" "}
-                    {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}
-                  </span>
-                </p>
+              <td colSpan={4} className="date-cell">
+                Date: {formatDate(certificate.dateAdministered, "dd/MM/yyyy")}
               </td>
             </tr>
-            <tr className="c55">
-              <td className="c35" colSpan={2} rowSpan={1}>
-                <p className="c48">
-                  <span className="c0">Beneficiary Details</span>
-                </p>
-              </td>
-              <td className="c38" colSpan={3} rowSpan={1}>
-                <p className="c4">
-                  <span className="c0">Vaccination Details</span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c70">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c23 c69">
-                  <span className="c0">Name:</span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">{certificate.patientName}</span>
-                </p>
-              </td>
-              <td className="c14" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Name of</span>
-                </p>
-                <p className="c10">
-                  <span className="c0">Vaccine</span>
-                </p>
-              </td>
-              <td className="c39" colSpan={2} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">{certificate.vaccine.name}</span>
-                </p>
-                <p className="c10">
-                  <span className="c0">
-                    ({certificate.vaccinations?.[0]?.provider?.name})
-                  </span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c85">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Father&apos;s Name:</span>
-                </p>
-                <p className="c23 c57 c69">
-                  <span className="c0"></span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c9">
-                  <span className="c0">{certificate.fatherName}</span>
-                </p>
-              </td>
-              <td className="c14" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Vaccination Center:</span>
-                </p>
-              </td>
-              <td className="c39" colSpan={2} rowSpan={1}>
-                <p className="c56">
-                  <span className="c0">
-                    Popular Medical Centre and Hospital.
-                  </span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c27">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c45">
-                  <span className="c0">&nbsp; Mother&apos;s Name:</span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c7">
-                  <span className="c0">{certificate.motherName}</span>
-                </p>
-              </td>
-              <td className="c14" colSpan={3} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Vaccination Details</span>
-                </p>
-              </td>
-            </tr>
-            {/* Generate rows for regular doses */}
-            {Array.from({ length: certificate.vaccine.totalDose }).map(
-              (_, index) => {
-                const doseNumber = index + 1;
-                const vaccination = certificate.vaccinations.find(
-                  (v) => v.doseNumber === doseNumber
-                );
 
-                return (
-                  <tr key={`dose-${doseNumber}`} className="c18">
-                    {doseNumber === 1 && (
-                      <>
-                        <td
-                          className="c32"
-                          colSpan={1}
-                          rowSpan={certificate.vaccine.totalDose}
-                        >
-                          <p className="c10">
-                            <span className="c0">Date of Birth:</span>
-                          </p>
-                        </td>
-                        <td
-                          className="c50"
-                          colSpan={1}
-                          rowSpan={certificate.vaccine.totalDose}
-                        >
-                          <p className="c7">
-                            <span className="c0">
-                              {formatDate(
-                                certificate.dateOfBirth,
-                                "dd/MM/yyyy"
-                              )}
-                            </span>
-                          </p>
-                        </td>
-                      </>
-                    )}
-                    <td className="c11" colSpan={1}>
-                      <p className="c10">
-                        <span className="c0">Dose {doseNumber}</span>
-                      </p>
-                    </td>
-                    <td className="c43" colSpan={1}>
-                      <p className="c2">
-                        {" "}
-                        {vaccination ? (
-                          <span className="c0">✓</span>
-                        ) : (
-                          <span className="c0">☐</span>
-                        )}
-                      </p>
-                    </td>
-                    <td className="c75" colSpan={1}>
-                      <p className="c10">
-                        <span className="c0">
-                          Given Date:{" "}
-                          {vaccination
-                            ? formatDate(
-                                vaccination.dateAdministered,
-                                "dd/MM/yyyy"
-                              )
-                            : ""}
-                        </span>
-                      </p>
-                    </td>
-                  </tr>
-                );
-              }
-            )}
+            {/* Beneficiary Details Section */}
+            <tr className="section-header">
+              <td colSpan={8}>Beneficiary Details</td>
+            </tr>
+            <tr>
+              <td className="label-cell" colSpan={2}>
+                Name:
+              </td>
+              <td colSpan={2}>{certificate.patientName}</td>
+              <td className="label-cell" colSpan={2}>
+                Father&apos;s Name:
+              </td>
+              <td colSpan={2}>{certificate.fatherName}</td>
+            </tr>
+            <tr>
+              <td className="label-cell" colSpan={2}>
+                Mother&apos;s Name:
+              </td>
+              <td colSpan={2}>{certificate.motherName}</td>
+              <td className="label-cell" colSpan={2}>
+                Date of Birth:
+              </td>
+              <td colSpan={2}>
+                {formatDate(certificate.dateOfBirth, "dd/MM/yyyy")}
+              </td>
+            </tr>
+            <tr>
+              <td className="label-cell" colSpan={2}>
+                Gender:
+              </td>
+              <td colSpan={2}>{certificate.gender}</td>
+              <td className="label-cell" colSpan={2}>
+                NID No:
+              </td>
+              <td colSpan={2}>{certificate.nidNumber}</td>
+            </tr>
+            <tr>
+              <td className="label-cell" colSpan={2}>
+                Passport No:
+              </td>
+              <td colSpan={2}>{certificate.passportNumber}</td>
+              <td className="label-cell" colSpan={2}>
+                Nationality:
+              </td>
+              <td colSpan={2}>{certificate.nationality}</td>
+            </tr>
 
-            {/* Generate rows for booster doses */}
-            {certificate.boosterDoses &&
-              certificate.boosterDoses.length > 0 &&
-              certificate.boosterDoses.map((booster, index) => (
-                <tr key={`booster-${index}`} className="c18">
-                  {index === 0 && (
+            {/* Vaccination Details Section */}
+            <tr className="section-header">
+              <td colSpan={8}>Vaccination Details</td>
+            </tr>
+            <tr>
+              <td className="label-cell" colSpan={2}>
+                Name of Vaccine:
+              </td>
+              <td colSpan={2}>{certificate.vaccine.name} (Pfizer)</td>
+              <td className="label-cell" colSpan={2}>
+                Vaccination Center:
+              </td>
+              <td colSpan={2}>Popular Medical Centre and Hospital.</td>
+            </tr>
+
+            {/* Regular Doses */}
+            {Array.from({ length: Math.ceil(certificate.vaccine.totalDose / 2) }).map((_, index) => {
+              const firstDoseNumber = index * 2 + 1;
+              const secondDoseNumber = index * 2 + 2;
+              const firstDose = getVaccinationByDose(firstDoseNumber);
+              const secondDose = getVaccinationByDose(secondDoseNumber);
+              const showSecondDose = secondDoseNumber <= certificate.vaccine.totalDose;
+
+              return (
+                <tr key={`dose-pair-${index}`}>
+                  <td colSpan={1}>Dose {firstDoseNumber}</td>
+                  <td className="text-center" colSpan={1}>{firstDose ? "✓" : "☐"}</td>
+                  <td colSpan={2}>Given Date: {firstDose?.dateAdministered ? formatDate(firstDose.dateAdministered, "dd/MM/yyyy") : ""}</td>
+                  {showSecondDose ? (
                     <>
-                      <td
-                        className="c32"
-                        colSpan={1}
-                        rowSpan={certificate.boosterDoses?.length || 1}
-                      >
-                        <p className="c10">
-                          <span className="c0">Gender:</span>
-                        </p>
-                      </td>
-                      <td
-                        className="c50"
-                        colSpan={1}
-                        rowSpan={certificate.boosterDoses?.length || 1}
-                      >
-                        <p className="c7">
-                          <span className="c0">{certificate.gender}</span>
-                        </p>
-                      </td>
+                      <td colSpan={1}>Dose {secondDoseNumber}</td>
+                      <td className="text-center" colSpan={1}>{secondDose ? "✓" : "☐"}</td>
+                      <td colSpan={2}>Given Date: {secondDose?.dateAdministered ? formatDate(secondDose.dateAdministered, "dd/MM/yyyy") : ""}</td>
                     </>
+                  ) : (
+                    <td colSpan={4}></td>
                   )}
-                  <td className="c11" colSpan={1}>
-                    <p className="c10">
-                      <span className="c0">
-                        {certificate.boosterDoses!.length === 1
-                          ? "Booster Dose"
-                          : `Booster Dose ${index + 1}`}
-                      </span>
-                    </p>
-                  </td>
-                  <td className="c43" colSpan={1}>
-                    <p className="c2">
-                      <span className="c0">✓</span>
-                    </p>
-                  </td>
-                  <td className="c75" colSpan={1}>
-                    <p className="c10">
-                      <span className="c0">
-                        Given Date:{" "}
-                        {formatDate(booster.dateAdministered, "dd/MM/yyyy")}
-                      </span>
-                    </p>
-                  </td>
                 </tr>
-              ))}
+              );
+            })}
 
-            <tr className="c80">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">NID No:</span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c9">
-                  <span className="c0">{certificate.nidNumber}</span>
-                </p>
-              </td>
-              <td className="c38" colSpan={3} rowSpan={3}>
-                <p className="c12 c57">
-                  <span className="c0"></span>
-                </p>
-                <p className="c12 c57">
-                  <span className="c0"></span>
-                </p>
-                <p className="c12">
-                  <span className="c0">E-mail: </span>
-                  <span className="c83">
-                    <a
-                      className="c40"
-                      href="mailto:popularsylhet2005@gmail.com"
-                    >
-                      popularsylhet2005@gmail.com
-                    </a>
-                  </span>
-                </p>
-                <p className="c57 c78">
-                  <span className="c0"></span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c62">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c10">
-                  <span className="c0">Passport No:</span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c23 c59">
-                  <span className="c0">{certificate.passportNumber}</span>
-                </p>
-              </td>
-            </tr>
-            <tr className="c41">
-              <td className="c32" colSpan={1} rowSpan={1}>
-                <p className="c5">
-                  <span className="c0">Nationality:</span>
-                </p>
-              </td>
-              <td className="c15" colSpan={1} rowSpan={1}>
-                <p className="c7">
-                  <span className="c0">{certificate.nationality}</span>
-                </p>
+            {/* Booster Row */}
+            {(!certificate.boosterDoses || certificate.boosterDoses.length === 0) && (
+              <tr>
+                <td colSpan={1}>Booster</td>
+                <td className="text-center" colSpan={1}>☐</td>
+                <td colSpan={2}></td>
+                <td colSpan={4}></td>
+              </tr>
+            )}
+            {certificate.boosterDoses?.map((booster, index) => (
+              <tr key={`booster-${index}`}>
+                <td colSpan={1}>Booster {index + 1}</td>
+                <td className="text-center" colSpan={1}>✓</td>
+                <td colSpan={2}>Given Date: {formatDate(booster.dateAdministered, "dd/MM/yyyy")}</td>
+                {index % 2 === 0 && certificate.boosterDoses!.length > index + 1 ? (
+                  <>
+                    <td colSpan={1}>Booster {index + 2}</td>
+                    <td className="text-center" colSpan={1}>✓</td>
+                    <td colSpan={2}>Given Date: {formatDate(certificate.boosterDoses![index + 1].dateAdministered, "dd/MM/yyyy")}</td>
+                  </>
+                ) : (
+                  <td colSpan={4}></td>
+                )}
+              </tr>
+            ))}
+
+            {/* Email Row */}
+            <tr>
+              <td colSpan={8} className="email-cell">
+                E-mail:{" "}
+                <a href="mailto:popularsylhet2005@gmail.com">
+                  popularsylhet2005@gmail.com
+                </a>
               </td>
             </tr>
           </tbody>
         </table>
-        <p className="c6">
-          <span className="c0"></span>
-        </p>
+
         {certificate.vaccine.totalDose === certificate.vaccinations.length && (
-          <p className="c20">
-            <span className="c0">
-              &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Above mentioned
-              Bangladeshi resident has completed{" "}
-              {certificate.gender === "MALE" ? "his" : "her"}{" "}
-              <span className="underline">{certificate.vaccine.name}</span>{" "}
-              vaccination on{" "}
-              {formatDate(
-                certificate.vaccinations[certificate.vaccinations.length - 1]
-                  .dateAdministered,
-                "dd/MM/yyyy"
-              )}{" "}
-              from Popular Medical centre and Hospital, Sylhet.
-            </span>
+          <p className="completion-text">
+            Above mentioned Bangladeshi resident has completed{" "}
+            {certificate.gender === "MALE" ? "his" : "her"}{" "}
+            <span className="underline">{certificate.vaccine.name}</span>{" "}
+            vaccination on{" "}
+            {formatDate(
+              certificate.vaccinations[certificate.vaccinations.length - 1]
+                .dateAdministered,
+              "dd/MM/yyyy"
+            )}{" "}
+            from Popular Medical centre and Hospital, Sylhet.
           </p>
         )}
-        <div className="flex flex-col items-center gap-4 mt-4">
-          <div className="flex items-center justify-center">
-            <QRCode value={qrValue} size={128} />
-          </div>
-          <div>
-            <p className="c20">
-              <span className="c0">
-                This certification is issued for acknowledgement to respective
-                authority.
-              </span>
-            </p>
-            <p className="c20">
-              <span className="c0">(Uploaded in website: </span>
-              <span className="c73">
-                <a
-                  className="c40"
-                  href="https://www.google.com/url?q=http://www.popularsylhet.com&amp;sa=D&amp;source=editors&amp;ust=1739210034126707&amp;usg=AOvVaw2SYQ0XBiCbDyiad1eGkN5z"
-                >
-                  www.popularsylhet.com
-                </a>
-              </span>
-              <span className="c0">)</span>
-            </p>
-          </div>
+
+        <div className="footer">
+          <QRCode value={qrValue} size={128} />
+          <p>
+            This certification is issued for acknowledgement to respective
+            authority.
+          </p>
+          <p>
+            (Uploaded in website:{" "}
+            <a href="http://www.popularsylhet.com">www.popularsylhet.com</a>)
+          </p>
         </div>
-        <p className="c6">
-          <span className="c0"></span>
-        </p>
-        <p className="c6">
-          <span className="c0"></span>
-        </p>
-        <p className="c16">
-          <span className="c0"></span>
-        </p>
-        <p className="c16">
-          <span className="c0"></span>
-        </p>
-        <p className="c16">
-          <span className="c0"></span>
-        </p>
-        <p className="c52">
-          <span className="c0">&nbsp;</span>
-        </p>
       </div>
+
+      <style>{`
+        .certificate-container {
+          font-family: "Times New Roman", serif;
+          margin: 0 auto;
+          padding: 20px;
+        }
+
+        .logo {
+          display: block;
+          width: 100%;
+          height: auto;
+          margin-bottom: 20px;
+        }
+
+        .certificate-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+          table-layout: fixed;
+        }
+
+        .certificate-table td {
+          border: 1px solid #000;
+          padding: 4px 6px;
+          height: 24pt;
+          font-weight: bold;
+          font-size: 12pt;
+          vertical-align: middle;
+        }
+
+        .section-header td {
+          font-size: 12pt;
+          font-weight: bold;
+          text-align: center;
+          background-color: #f8f8f8;
+          padding: 4px;
+          height: 20pt;
+        }
+
+        .label-cell {
+          background-color: #f8f8f8;
+          padding: 4px;
+        }
+
+        .text-center {
+          text-align: center;
+        }
+
+        .email-cell {
+          text-align: center;
+        }
+
+        .email-cell a {
+          color: blue;
+          text-decoration: underline;
+        }
+
+        .completion-text {
+          text-align: center;
+          margin: 20px 0;
+          font-weight: bold;
+          font-size: 12pt;
+        }
+
+        .footer {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          margin-top: 20px;
+        }
+
+        .footer p {
+          margin: 5px 0;
+          font-weight: bold;
+          font-size: 12pt;
+        }
+
+        .footer a {
+          color: blue;
+          text-decoration: underline;
+        }
+
+        .underline {
+          text-decoration: underline;
+        }
+
+        @media print {
+          .certificate-container {
+            padding: 0;
+            width: 100%;
+          }
+
+          .logo {
+            width: 100%;
+            height: auto;
+          }
+          
+          .section-header td,
+          .label-cell,
+          .dose-header td {
+            background-color: #f8f8f8 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      `}</style>
     </div>
   );
 }
