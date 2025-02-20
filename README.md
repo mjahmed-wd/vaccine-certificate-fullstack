@@ -375,12 +375,3 @@ docker system prune
 For any deployment issues or questions, please contact:
 - System Administrator: [contact details]
 - Development Team: [contact details]
-
-scp 'popular@115.69.210.131:/var/www/vaccine-certificate/backups/backup_20250216_160356.sql.sql' .  
-
-Connection Details:
-Host: 115.69.210.131
-Port: 3307
-Username: appuser
-Password: apppassword
-Database: vaccine_db
