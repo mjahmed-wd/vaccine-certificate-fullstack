@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export const checkPaymentStatus = () => {
   const dueDate = new Date("2025-02-15"); // Update with your due date
-  const daysDeadline = 60;
+  const daysDeadline = 10;
 
   const currentDate = new Date();
   const utc1 = Date.UTC(

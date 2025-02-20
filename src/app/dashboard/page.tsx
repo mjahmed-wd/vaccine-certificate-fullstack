@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { checkPaymentStatus } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface DashboardCounts {
   users: number;
@@ -30,7 +29,7 @@ export default function DashboardPage() {
         console.error("Error loading counts:", error);
         setIsLoading(false);
       });
-    checkPaymentStatus();
+    // checkPaymentStatus();
   }, []);
 
   return (
