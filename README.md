@@ -375,3 +375,65 @@ docker system prune
 For any deployment issues or questions, please contact:
 - System Administrator: [contact details]
 - Development Team: [contact details]
+
+## Updating Deployment
+
+When you need to update the deployed application, follow these steps:
+
+1. **SSH into the server**
+   ```bash
+   ssh popular@115.69.210.131
+   ```
+
+2. **Navigate to project directory**
+   ```bash
+   cd /var/www/vaccine-certificate
+   ```
+
+3. **Clean up existing PM2 processes**
+   ```bash
+   # Stop and remove all PM2 processes
+   pm2 delete all
+   pm2 save --force
+   ```
+
+4. **Update and build the application**
+   ```bash
+   # Pull latest changes
+   git pull
+
+   # Install dependencies
+   npm install
+
+   # Build the application
+   npm run build
+   ```
+
+5. **Start the application with PM2**
+   ```bash
+   pm2 start npm --name "vaccine-certificate" -- start
+   pm2 save
+   ```
+
+6. **Troubleshooting Port Issues**
+   If you encounter port 3000 already in use:
+   ```bash
+   # Find processes using port 3000
+   sudo lsof -i :3000 | grep LISTEN
+
+   # Kill the process (replace PID with actual process ID)
+   sudo kill -9 <PID>
+
+   # Restart the application
+   pm2 delete all
+   pm2 save --force
+   pm2 start npm --name "vaccine-certificate" -- start
+   pm2 save
+   ```
+
+7. **Verify Deployment**
+   - Check application logs: `pm2 logs vaccine-certificate`
+   - Visit the website: https://vaccine.popularsylhet.com/
+   - Test core functionality after deployment
+
+**Note**: Always ensure to check the logs for any errors after deployment. If the application is not accessible, verify that nginx is properly configured and running.
