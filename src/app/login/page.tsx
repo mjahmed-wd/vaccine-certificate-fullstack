@@ -129,6 +129,7 @@ export default function LoginPage() {
         <div className="relative z-10 text-sm opacity-75 text-white">
           <p className="text-white">Sobhanighat, Sylhet | Phone: 09638009006</p>
           <p className="text-white">Email: popularsylhet2005@gmail.com</p>
+          <p className="text-white hidden">Version 1.0.0</p>
         </div>
       </div>
 
