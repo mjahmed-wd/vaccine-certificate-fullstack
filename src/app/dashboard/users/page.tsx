@@ -117,7 +117,7 @@ export default function UsersPage() {
                   {user.firstName} {user.lastName}
                 </TableCell>
                 <TableCell>{user.username}</TableCell>
-                <TableCell>{user.role}</TableCell>
+                <TableCell>{user.role.replaceAll("_", " ")}</TableCell>
                 <TableCell>{user.center}</TableCell>
                 <TableCell>{user.phone}</TableCell>
                 <TableCell className="text-right">

@@ -181,3 +181,206 @@ vaccine-certificate/
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+# Vaccine Certificate Management System - Deployment Guide
+
+## Server Access
+
+### SSH Login
+```bash
+ssh popular@115.69.210.131
+```
+
+### Server Requirements
+- Node.js (v18 or higher)
+- Docker and Docker Compose
+- PM2 (for process management)
+- Git
+
+## Initial Setup
+
+1. **Clone the Repository**
+```bash
+cd /var/www
+git clone [repository-url] vaccine-certificate
+cd vaccine-certificate
+```
+
+2. **Environment Setup**
+```bash
+# Copy the environment file
+cp .env.example .env
+
+# Update the following variables in .env:
+# - DATABASE_URL=mysql://appuser:apppassword@localhost:3307/vaccine_db
+# - JWT_SECRET=[your-secret-key]
+# - NEXTAUTH_SECRET=[your-nextauth-secret]
+# - NEXTAUTH_URL=http://your-domain.com
+```
+
+3. **Install Dependencies**
+```bash
+npm install
+```
+
+## Database Setup
+
+1. **Start Docker Containers**
+```bash
+# Start MySQL and backup services
+docker compose up -d
+
+# Verify containers are running
+docker ps
+```
+
+2. **Database Migration**
+```bash
+# Generate Prisma Client
+npx prisma generate
+
+# Run migrations
+npx prisma migrate deploy
+```
+
+## Application Deployment
+
+1. **Build the Application**
+```bash
+# Build Next.js application
+npm run build
+```
+
+2. **Start with PM2**
+```bash
+# Start the application
+pm2 start npm --name "vaccine-certificate" -- start
+
+# Check status
+pm2 status
+
+# View logs
+pm2 logs vaccine-certificate
+```
+
+3. **Update Application**
+```bash
+# Pull latest changes
+git pull
+
+# Install dependencies if needed
+npm install
+
+# Rebuild the application
+npm run build
+
+# Restart PM2 process
+pm2 restart vaccine-certificate
+```
+
+## Docker Commands
+
+### Container Management
+```bash
+# Start containers
+docker compose up -d
+
+# Stop containers
+docker compose down
+
+# View container logs
+docker logs vaccine-certificate-mysql-1
+docker logs vaccine-certificate-backup-1
+
+# Restart containers
+docker compose restart
+```
+
+### Database Backup
+The backup service automatically:
+- Creates hourly backups in the `./backups` directory
+- Maintains backups for 7 days
+- Deletes older backups automatically
+
+Manual backup:
+```bash
+docker exec vaccine-certificate-mysql-1 mysqldump -u appuser -papppassword vaccine_db > manual_backup.sql
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+1. Check if MySQL container is running:
+```bash
+docker ps | grep mysql
+```
+
+2. Verify MySQL logs:
+```bash
+docker logs vaccine-certificate-mysql-1
+```
+
+3. Test database connection:
+```bash
+docker exec -it vaccine-certificate-mysql-1 mysql -u appuser -papppassword vaccine_db
+```
+
+### Application Issues
+1. Check PM2 logs:
+```bash
+pm2 logs vaccine-certificate
+```
+
+2. Verify Next.js build:
+```bash
+npm run build
+```
+
+3. Check application logs:
+```bash
+tail -f /var/www/vaccine-certificate/logs/error.log
+```
+
+## Security Notes
+
+1. The MySQL root password and application database credentials are set in `docker-compose.yml`
+2. Database port 3307 is exposed for local development
+3. Ensure proper firewall rules are in place
+4. Keep environment variables secure and never commit them to version control
+
+## Maintenance
+
+### Regular Updates
+```bash
+# Update application
+git pull
+npm install
+npm run build
+pm2 restart vaccine-certificate
+
+# Update Docker images
+docker compose pull
+docker compose up -d
+```
+
+### Log Rotation
+PM2 handles log rotation automatically. For Docker logs:
+```bash
+# Clear Docker logs
+docker system prune
+```
+
+## Support
+
+For any deployment issues or questions, please contact:
+- System Administrator: [contact details]
+- Development Team: [contact details]
+
+scp 'popular@115.69.210.131:/var/www/vaccine-certificate/backups/backup_20250216_160356.sql.sql' .  
+
+Connection Details:
+Host: 115.69.210.131
+Port: 3307
+Username: appuser
+Password: apppassword
+Database: vaccine_db

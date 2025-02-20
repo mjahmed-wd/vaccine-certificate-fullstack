@@ -111,7 +111,7 @@ export default function DashboardLayout({
                     {session?.user?.firstName} {session?.user?.lastName}
                   </p>
                   <p className="text-xs font-light text-gray-300">
-                    {session?.user?.role}
+                    {session?.user?.role?.replaceAll("_", " ")}
                   </p>
                 </div>
                 <button

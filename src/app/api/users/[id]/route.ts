@@ -130,3 +130,28 @@ export async function PUT(
     );
   }
 } 
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<Record<string, string>> }
+) {
+  try {
+    const { id } = await params;
+
+    // Check authentication
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Delete user
+    await db.user.delete({
+      where: { id: id },
+    });
+
+    return NextResponse.json({ message: "User deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+  }
+}

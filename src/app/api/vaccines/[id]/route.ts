@@ -189,15 +189,50 @@ export async function DELETE(
       );
     }
 
+    // Check for existing records
+    const existingRecords = await db.$transaction([
+      db.certificate.count({ where: { vaccineId: id } }),
+      db.vaccinationRecord.count({ where: { vaccineId: id } }),
+      db.boosterDose.count({ where: { vaccineId: id } })
+    ]);
+
+    const [certificateCount, vaccinationCount, boosterCount] = existingRecords;
+    const totalRecords = certificateCount + vaccinationCount + boosterCount;
+
+    if (totalRecords > 0) {
+      return NextResponse.json({
+        error: "Cannot delete vaccine that is in use",
+        details: {
+          certificateCount,
+          vaccinationCount,
+          boosterCount,
+          message: "This vaccine is associated with existing vaccination records"
+        }
+      }, { status: 400 });
+    }
+
+    // If no records exist, first delete all providers
+    await db.vaccineProvider.deleteMany({
+      where: { vaccineId: id }
+    });
+
+    // Then delete the vaccine
     await db.vaccine.delete({
-      where: {
-        id: id,
-      },
+      where: { id }
     });
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("Error deleting vaccine:", error);
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { 
+          error: "Failed to delete vaccine",
+          details: error.message
+        },
+        { status: 500 }
+      );
+    }
     return NextResponse.json(
       { error: "Failed to delete vaccine" },
       { status: 500 }
